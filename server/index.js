@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 const allowedOrigins = [
-  'https://uzhavar.vercel.app/', // production frontend
+  'https://uzhavar.vercel.app', // production frontend
   'http://localhost:3000'           // CRA dev
 ];
 
