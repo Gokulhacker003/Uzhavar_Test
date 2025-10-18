@@ -2,7 +2,7 @@
   "name": "ullavar",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://uzhavar.onrender.com",
+  "proxy": "http://localhost:4000",
   "dependencies": {
     "@react-google-maps/api": "^2.20.7",
     "@testing-library/dom": "^10.4.0",
@@ -22,7 +22,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "cross-env DANGEROUSLY_DISABLE_HOST_CHECK=true react-scripts start",
+    "start": "cross-env WDS_ALLOWED_HOSTS=all DANGEROUSLY_DISABLE_HOST_CHECK=true react-scripts start",
     "build": "react-scripts build",
     "vercel-build": "react-scripts build",
     "test": "react-scripts test",
