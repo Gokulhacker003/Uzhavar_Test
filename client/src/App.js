@@ -13,7 +13,7 @@ import ProjectsPage from './ProjectsPage';
 import FarmDetailsPage from './FarmDetailsPage';
 import BookTeamPage from './BookTeamPage';
 import { BrowserRouter as Router, Routes, Route, Link, NavLink } from 'react-router-dom';
-import { FaLeaf,FaUser, FaEnvelope, FaSeedling, FaTools, FaIdCard, FaHandshake, FaTractor, FaImage, FaMapMarkerAlt, FaCalendarAlt, FaCheckCircle, FaUserFriends, FaPhone, FaFileAlt, FaShoppingCart, FaClipboardList, FaBriefcase } from 'react-icons/fa';
+import { FaLeaf,FaUser, FaSeedling, FaTools, FaHandshake, FaTractor, FaImage, FaMapMarkerAlt, FaCalendarAlt, FaCheckCircle, FaUserFriends, FaFileAlt, FaShoppingCart, FaClipboardList, FaBriefcase } from 'react-icons/fa';
 import { MdOutlineConstruction, MdSettings, MdSell, MdLandscape } from 'react-icons/md';
 import { BsArrowRightCircle, BsCalendarCheck, BsStars } from 'react-icons/bs';
 import './App.css';
@@ -21,7 +21,6 @@ import {
   GiWheat,
   GiFarmTractor,
   GiPlantRoots,
-  GiFruitTree,
   GiWateringCan,
 } from 'react-icons/gi';
 import { GiWoodenFence } from 'react-icons/gi';
