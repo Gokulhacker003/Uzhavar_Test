@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { apiUrl } from './api';
 
 function LocationPicker({ onLocationSelect }) {
   const [position, setPosition] = useState(null);
@@ -60,7 +61,7 @@ export default function LandPage() {
     };
 
     // Send email
-    fetch('/api/send-email', {
+    fetch(apiUrl('/api/send-email'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

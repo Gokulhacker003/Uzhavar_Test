@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiUrl } from './api';
 
 export default function RequestQuotePage() {
   const [quoteForm, setQuoteForm] = useState({
@@ -43,7 +44,7 @@ export default function RequestQuotePage() {
     };
 
     // Send email
-    fetch('/api/send-email', {
+    fetch(apiUrl('/api/send-email'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

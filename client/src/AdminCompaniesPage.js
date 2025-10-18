@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiUrl } from './api'; // or '../api' depending on folder structure
 
 const initialCompanies = [
   { id: 1, name: 'Ullavar Agro', description: 'Farm management and consulting.', products: [] },
@@ -30,10 +31,17 @@ export default function AdminCompaniesPage() {
     setForm(f => ({ ...f, [name]: value }));
   }
 
-  function handleAdd(e) {
+  async function handleAdd(e) {
   e.preventDefault();
   if (!form.name.trim()) return;
-  setCompanies([...companies, { id: Date.now(), ...form, products: [] }]);
+  const companyData = { ...form, products: [] };
+  const res = await fetch(apiUrl('/api/companies'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(companyData)
+  });
+  const newCompany = await res.json();
+  setCompanies([...companies, newCompany]);
   setForm({ name: '', description: '' });
   }
 

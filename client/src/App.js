@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getHello } from './api';
+import { getHello, apiUrl } from './api';
 import ConfirmPlan from './ConfirmPlan';
 import AdminCompaniesPage from './admin/AdminCompaniesPage';
 import AdminSubmissionsPage from './admin/AdminSubmissionsPage';
@@ -292,7 +292,7 @@ function App() {
 
   // helper to POST to backend
   const postToApi = async (payload) => {
-    const res = await fetch('/api/send-email', {
+    const res = await fetch(apiUrl('/api/send-email'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -1049,7 +1049,7 @@ function LandPage() {
     };
 
     // Send email
-    fetch('/api/send-email', {
+    fetch(apiUrl('/api/send-email'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1385,7 +1385,7 @@ function JoinUsPage() {
       };
 
       // Send email
-      fetch('/api/send-email', {
+      fetch(apiUrl('/api/send-email'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(emailData)
@@ -1396,7 +1396,7 @@ function JoinUsPage() {
       });
 
       // Send data to local storage
-      fetch('/api/store-data', {
+      fetch(apiUrl('/api/store-data'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

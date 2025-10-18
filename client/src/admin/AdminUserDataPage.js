@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiUrl } from '../api';
 
 export default function AdminUserDataPage() {
   const [userData, setUserData] = useState(null);
@@ -12,7 +13,7 @@ export default function AdminUserDataPage() {
     try {
       const headers = {};
       if (password) headers['x-admin-key'] = password;
-      const res = await fetch('/api/user-data', { headers });
+      const res = await fetch(apiUrl('/api/user-data'), { headers });
       if (!res.ok) {
         const txt = await res.text();
         throw new Error(txt || 'Failed to fetch user data');

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiUrl } from './api';
 
 export default function BookTeamPage() {
   const [form, setForm] = useState({
@@ -37,7 +38,7 @@ export default function BookTeamPage() {
     };
 
     // Send email
-    fetch('/api/send-email', {
+    fetch(apiUrl('/api/send-email'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

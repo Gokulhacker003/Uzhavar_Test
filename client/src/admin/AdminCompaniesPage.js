@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiUrl } from '../api';
 
 export default function AdminCompaniesPage({ onLogout }) {
   const [companies, setCompanies] = useState([]);
@@ -49,7 +50,7 @@ export default function AdminCompaniesPage({ onLogout }) {
       formData.append('logo', form.logo);
     }
 
-    fetch('/api/companies', {
+    fetch(apiUrl('/api/companies'), {
       method: 'POST',
       body: formData
     })
@@ -213,7 +214,7 @@ export default function AdminCompaniesPage({ onLogout }) {
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetch('/api/companies')
+      fetch(apiUrl('/api/companies'))
         .then(r => r.json())
         .then(data => setCompanies(data))
         .catch(err => {
@@ -221,11 +222,11 @@ export default function AdminCompaniesPage({ onLogout }) {
           setCompanies([]);
         });
 
-      // load image gallery
-      fetch('/api/images')
-        .then(r => r.json())
-        .then(imgs => setImageGallery(imgs))
-        .catch(err => console.error('Failed to load images', err));
+      // Note: /api/images endpoint does not exist on backend, commenting out
+      // fetch(apiUrl('/api/images'))
+      //   .then(r => r.json())
+      //   .then(imgs => setImageGallery(imgs))
+      //   .catch(err => console.error('Failed to load images', err));
     }
   }, [isAuthenticated]);
 

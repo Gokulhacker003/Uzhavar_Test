@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { FaUser, FaMapMarkerAlt, FaPhone, FaEnvelope, FaSeedling, FaCheckCircle } from 'react-icons/fa';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { apiUrl } from './api';
 
 function ConfirmPlan() {
   const location = useLocation();
@@ -54,7 +55,7 @@ function ConfirmPlan() {
     };
 
     // Send email
-    fetch('/api/send-email', {
+    fetch(apiUrl('/api/send-email'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiUrl } from '../api';
 
 export default function AdminSubmissionsPage() {
   const [subs, setSubs] = useState(null);
@@ -12,7 +13,7 @@ export default function AdminSubmissionsPage() {
     try {
       const headers = {};
       if (password) headers['x-admin-key'] = password;
-      const res = await fetch('/api/submissions', { headers });
+      const res = await fetch(apiUrl('/api/submissions'), { headers });
       if (!res.ok) {
         const txt = await res.text();
         throw new Error(txt || 'Failed to fetch submissions');
