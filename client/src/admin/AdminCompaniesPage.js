@@ -7,7 +7,6 @@ export default function AdminCompaniesPage({ onLogout }) {
   const [editingId, setEditingId] = useState(null);
   const [productForm, setProductForm] = useState({ name: '', price: '', image: '', imageFile: null });
   const [activeProductCompanyId, setActiveProductCompanyId] = useState(null);
-  const [imageGallery, setImageGallery] = useState([]);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryType, setGalleryType] = useState('product'); // 'product' or 'logo'
 
@@ -576,7 +575,7 @@ export default function AdminCompaniesPage({ onLogout }) {
       {/* Image Gallery Modal */}
       {isGalleryOpen && (
         <ImageGalleryModal
-          images={imageGallery}
+          images={[]}
           onClose={() => setIsGalleryOpen(false)}
           onPick={(url) => { 
             if (galleryType === 'logo') {
