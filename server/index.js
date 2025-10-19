@@ -2,9 +2,27 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
+    cb(null, uniqueSuffix);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 const allowedOrigins = [
   'https://uzhavar.vercel.app', // production frontend (NO trailing slash!)
@@ -80,7 +98,7 @@ app.get('/api/companies', (req, res) => {
 });
 
 // Create new company
-app.post('/api/companies', (req, res) => {
+app.post('/api/companies', upload.single('logo'), (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   
   try {
@@ -90,23 +108,34 @@ app.post('/api/companies', (req, res) => {
       companies = JSON.parse(data);
     }
     
+    const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo || '');
+    
     const newCompany = {
       id: Date.now().toString(),
-      ...req.body,
-      products: req.body.products || []
+      name: req.body.name,
+      description: req.body.description || '',
+      logo: logoPath,
+      products: []
     };
     
     companies.push(newCompany);
+    
+    // Ensure data directory exists
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
     fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
     res.json(newCompany);
   } catch (error) {
     console.error('Error creating company:', error);
-    res.status(500).json({ error: 'Failed to create company' });
+    res.status(500).json({ error: 'Failed to create company', details: error.message });
   }
 });
 
 // Update company
-app.put('/api/companies/:id', (req, res) => {
+app.put('/api/companies/:id', upload.single('logo'), (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { id } = req.params;
   
@@ -117,7 +146,14 @@ app.put('/api/companies/:id', (req, res) => {
       
       const index = companies.findIndex(c => c.id === id);
       if (index !== -1) {
-        companies[index] = { ...companies[index], ...req.body };
+        const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo !== undefined ? req.body.logo : companies[index].logo);
+        
+        companies[index] = { 
+          ...companies[index], 
+          name: req.body.name,
+          description: req.body.description || '',
+          logo: logoPath
+        };
         fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
         res.json(companies[index]);
       } else {
@@ -128,7 +164,7 @@ app.put('/api/companies/:id', (req, res) => {
     }
   } catch (error) {
     console.error('Error updating company:', error);
-    res.status(500).json({ error: 'Failed to update company' });
+    res.status(500).json({ error: 'Failed to update company', details: error.message });
   }
 });
 
@@ -155,7 +191,7 @@ app.delete('/api/companies/:id', (req, res) => {
 });
 
 // Add product to company
-app.post('/api/companies/:companyId/products', (req, res) => {
+app.post('/api/companies/:companyId/products', upload.single('image'), (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { companyId } = req.params;
   
@@ -167,7 +203,16 @@ app.post('/api/companies/:companyId/products', (req, res) => {
       const company = companies.find(c => c.id === companyId);
       if (company) {
         if (!company.products) company.products = [];
-        company.products.push(req.body);
+        
+        const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image || '');
+        
+        const newProduct = {
+          name: req.body.name,
+          price: req.body.price,
+          image: imagePath
+        };
+        
+        company.products.push(newProduct);
         fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
         res.json(company);
       } else {
@@ -178,12 +223,12 @@ app.post('/api/companies/:companyId/products', (req, res) => {
     }
   } catch (error) {
     console.error('Error adding product:', error);
-    res.status(500).json({ error: 'Failed to add product' });
+    res.status(500).json({ error: 'Failed to add product', details: error.message });
   }
 });
 
 // Update product in company
-app.put('/api/companies/:companyId/products/:productIndex', (req, res) => {
+app.put('/api/companies/:companyId/products/:productIndex', upload.single('image'), (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { companyId, productIndex } = req.params;
   
@@ -194,7 +239,13 @@ app.put('/api/companies/:companyId/products/:productIndex', (req, res) => {
       
       const company = companies.find(c => c.id === companyId);
       if (company && company.products && company.products[productIndex]) {
-        company.products[productIndex] = req.body;
+        const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image !== undefined ? req.body.image : company.products[productIndex].image);
+        
+        company.products[productIndex] = {
+          name: req.body.name,
+          price: req.body.price,
+          image: imagePath
+        };
         fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
         res.json(company);
       } else {
@@ -205,7 +256,7 @@ app.put('/api/companies/:companyId/products/:productIndex', (req, res) => {
     }
   } catch (error) {
     console.error('Error updating product:', error);
-    res.status(500).json({ error: 'Failed to update product' });
+    res.status(500).json({ error: 'Failed to update product', details: error.message });
   }
 });
 
