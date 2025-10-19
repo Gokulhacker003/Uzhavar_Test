@@ -26,6 +26,16 @@ app.use(cors({
 
 app.use(express.json());
 
+// Serve static files - uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Serve static files - assets directory (if you have one in server folder)
+// If assets are in client folder, you'll need to copy them or adjust the path
+const clientAssetsPath = path.join(__dirname, '..', 'client', 'public', 'assets');
+if (fs.existsSync(clientAssetsPath)) {
+  app.use('/assets', express.static(clientAssetsPath));
+}
+
 // Example route
 app.get('/api/hello', (req, res) => {
   res.json({ message: 'Hello from backend!' });

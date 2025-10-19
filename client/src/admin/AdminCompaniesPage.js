@@ -109,7 +109,7 @@ export default function AdminCompaniesPage({ onLogout }) {
       return;
     }
 
-    fetch(`/api/companies/${id}`, {
+    fetch(apiUrl(`/api/companies/${id}`), {
       method: 'DELETE'
     })
     .then(r => r.json())
@@ -196,7 +196,7 @@ export default function AdminCompaniesPage({ onLogout }) {
   function handleRemoveProduct(companyId, idx) {
     if (!window.confirm('Are you sure you want to remove this product?')) return;
 
-    fetch(`/api/companies/${companyId}/products/${idx}`, { method: 'DELETE' })
+    fetch(apiUrl(`/api/companies/${companyId}/products/${idx}`), { method: 'DELETE' })
       .then(r => r.json())
       .then(() => {
         setCompanies(prev => prev.map(c => 
