@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { apiUrl } from './api';
+import { sanitizePhone, isValidPhone } from './utils/validation';
 
 export default function FarmDetailsPage() {
   const [form, setForm] = useState({
@@ -20,9 +21,10 @@ export default function FarmDetailsPage() {
 
   function handleChange(e) {
     const { name, value, files } = e.target;
+    const v = files ? files[0] : (name === 'contact' ? sanitizePhone(value) : value);
     setForm(f => ({
       ...f,
-      [name]: files ? files[0] : value
+      [name]: v
     }));
   }
 
@@ -40,6 +42,10 @@ export default function FarmDetailsPage() {
 
   function handleSubmit(e) {
     e.preventDefault();
+    if (!isValidPhone(form.contact)) {
+      alert('Please enter a valid 10-digit phone number');
+      return;
+    }
     setSubmitted(true);
     
     // Prepare email data
@@ -99,7 +105,7 @@ export default function FarmDetailsPage() {
           </div>
           <div style={{marginBottom:'1rem'}}>
             <label style={{fontWeight:'bold'}}>Contact Number:</label><br/>
-            <input name="contact" value={form.contact} onChange={handleChange} required style={{width:'100%',padding:'0.5rem',borderRadius:'8px',border:'1px solid #ccc'}} />
+            <input name="contact" value={form.contact} onChange={handleChange} required type="tel" inputMode="numeric" pattern="^[0-9]{10}$" maxLength="10" title="Enter a valid 10-digit phone number" style={{width:'100%',padding:'0.5rem',borderRadius:'8px',border:'1px solid #ccc'}} />
           </div>
           <div style={{marginBottom:'1rem'}}>
             <label style={{fontWeight:'bold'}}>Address:</label><br/>

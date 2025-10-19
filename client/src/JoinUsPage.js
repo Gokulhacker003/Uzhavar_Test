@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { apiUrl } from './api';
 import { FaUser, FaMapMarkerAlt } from 'react-icons/fa';
+import { sanitizePhone, isValidPhone } from './utils/validation';
 
 function LocationPicker({ onLocationSelect }) {
   const [position, setPosition] = useState(null);
@@ -31,7 +32,8 @@ export default function JoinUsPage() {
 
   function handleChange(e) {
     const { name, value, files } = e.target;
-    setForm({ ...form, [name]: files ? files[0] : value });
+    const v = files ? files[0] : (name === 'phone' ? sanitizePhone(value) : value);
+    setForm({ ...form, [name]: v });
   }
 
   function handleLocation(latlng) {
@@ -40,6 +42,10 @@ export default function JoinUsPage() {
 
   function handleSubmit(e) {
     e.preventDefault();
+    if (!isValidPhone(form.phone)) {
+      alert('Please enter a valid 10-digit phone number');
+      return;
+    }
     setSubmitted(true);
     
     // Prepare email data
@@ -102,7 +108,7 @@ export default function JoinUsPage() {
             <input name="email" value={form.email} onChange={handleChange} required placeholder="Email Address" style={{ flex:1 }} />
           </div>
           <div style={{display:'flex', gap:'1em', marginBottom:'8px'}}>
-            <input name="phone" value={form.phone} onChange={handleChange} required placeholder="Phone Number" style={{ flex:1 }} />
+            <input name="phone" value={form.phone} onChange={handleChange} required placeholder="Phone Number" type="tel" inputMode="numeric" pattern="^[0-9]{10}$" maxLength="10" title="Enter a valid 10-digit phone number" style={{ flex:1 }} />
           </div>
         </div>
         <div style={{marginBottom:12, padding: '0.5em 0', borderRadius: 8, background: '#f7f7f7'}}>

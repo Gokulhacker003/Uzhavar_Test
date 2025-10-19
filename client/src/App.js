@@ -17,6 +17,7 @@ import { FaLeaf,FaUser, FaSeedling, FaTools, FaHandshake, FaTractor, FaImage, Fa
 import { MdOutlineConstruction, MdSettings, MdSell, MdLandscape } from 'react-icons/md';
 import { BsArrowRightCircle, BsCalendarCheck, BsStars } from 'react-icons/bs';
 import './App.css';
+import { sanitizePhone, isValidPhone } from './utils/validation';
 import {
   GiWheat,
   GiFarmTractor,
@@ -233,11 +234,16 @@ function App() {
 
   const handleProjectInput = (e) => {
     const { name, value } = e.target;
-    setProjectForm(prev => ({ ...prev, [name]: value }));
+    const v = name === 'phone' ? sanitizePhone(value) : value;
+    setProjectForm(prev => ({ ...prev, [name]: v }));
   };
 
   const handleProjectSubmit = (e) => {
     e.preventDefault();
+    if (!isValidPhone(projectForm.phone)) {
+      alert('Please enter a valid 10-digit phone number');
+      return;
+    }
     // send to backend
     postToApi({
       formType: 'Project Request',
@@ -269,11 +275,16 @@ function App() {
 
   const handleSoilTestChange = (e) => {
     const { name, value } = e.target;
-    setSoilTestForm(prev => ({ ...prev, [name]: value }));
+    const v = name === 'phone' ? sanitizePhone(value) : value;
+    setSoilTestForm(prev => ({ ...prev, [name]: v }));
   };
 
   const handleSoilTestSubmit = (e) => {
     e.preventDefault();
+    if (!isValidPhone(soilTestForm.phone)) {
+      alert('Please enter a valid 10-digit phone number');
+      return;
+    }
     postToApi({
       formType: 'Soil Test',
       name: soilTestForm.name,
@@ -407,7 +418,7 @@ function App() {
                   </label>
                   <label>
                     Phone
-                    <input type="tel" name="phone" value={soilTestForm.phone} onChange={handleSoilTestChange} required placeholder="10-digit mobile number" maxLength="10" />
+                    <input type="tel" name="phone" value={soilTestForm.phone} onChange={handleSoilTestChange} required placeholder="10-digit mobile number" inputMode="numeric" pattern="^[0-9]{10}$" maxLength="10" title="Enter a valid 10-digit phone number" />
                   </label>
                   <label>
                     Email
@@ -1090,7 +1101,7 @@ function LandPage() {
           </div>
           <div className="form-group">
             <label>Contact Number</label>
-            <input type="tel" name="contact" value={form.contact} onChange={handleChange} required pattern="^[0-9]{10,15}$" />
+            <input type="tel" name="contact" value={form.contact} onChange={handleChange} required inputMode="numeric" pattern="^[0-9]{10}$" maxLength="10" title="Enter a valid 10-digit phone number" />
           </div>
           <div className="form-group">
             <label>Location</label>

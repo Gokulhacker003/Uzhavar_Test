@@ -352,6 +352,13 @@ app.post('/api/store-data', (req, res) => {
 // Send email endpoint (placeholder - implement with nodemailer or your email service)
 app.post('/api/send-email', async (req, res) => {
   try {
+    // Basic phone validation when provided
+    const rawPhone = req.body?.phone || req.body?.payload?.phone || '';
+    const digits = String(rawPhone).replace(/\D/g, '');
+    if (rawPhone && digits.length !== 10) {
+      return res.status(400).json({ error: 'Invalid phone number. Provide exactly 10 digits.' });
+    }
+
     // 1) Persist submission locally
     const dataDir = path.join(__dirname, 'data');
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });

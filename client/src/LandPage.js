@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { apiUrl } from './api';
+import { sanitizePhone, isValidPhone } from './utils/validation';
 
 function LocationPicker({ onLocationSelect }) {
   const [position, setPosition] = useState(null);
@@ -32,7 +33,8 @@ export default function LandPage() {
 
   function handleChange(e) {
     const { name, value, files } = e.target;
-    setForm({ ...form, [name]: files ? files[0] : value });
+    const v = files ? files[0] : (name === 'contact' ? sanitizePhone(value) : value);
+    setForm({ ...form, [name]: v });
   }
 
   function handleLocation(latlng) {
@@ -41,6 +43,10 @@ export default function LandPage() {
 
   function handleSubmit(e) {
     e.preventDefault();
+    if (!isValidPhone(form.contact)) {
+      alert('Please enter a valid 10-digit phone number');
+      return;
+    }
     setSubmitted(true);
     
     // Prepare email data
@@ -80,7 +86,7 @@ export default function LandPage() {
   return (
     <div style={{ maxWidth: 600, margin: "2em auto", background: "#fff", padding: "2em", borderRadius: 12, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
       <h2 style={{ color: "#388e3c" }}>Submit Land Details</h2>
-  <form onSubmit={handleSubmit} encType="multipart/form-data">
+  <form onSubmit={handleSubmit}>
         <label>Land Image:<br />
           <input type="file" name="landImage" accept="image/*" onChange={handleChange} required style={{ width: "100%", marginBottom: 12 }} />
         </label>
@@ -95,6 +101,9 @@ export default function LandPage() {
         </label>
         <label>Expected Price:<br />
           <input name="price" value={form.price} onChange={handleChange} required style={{ width: "100%", marginBottom: 12 }} />
+        </label>
+        <label>Contact Number:<br />
+          <input name="contact" value={form.contact || ''} onChange={handleChange} required type="tel" inputMode="numeric" pattern="^[0-9]{10}$" maxLength="10" title="Enter a valid 10-digit phone number" style={{ width: "100%", marginBottom: 12 }} />
         </label>
         <label>Description:<br />
           <textarea name="description" value={form.description} onChange={handleChange} required style={{ width: "100%", marginBottom: 12 }} />

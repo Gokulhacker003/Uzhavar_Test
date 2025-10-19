@@ -4,6 +4,7 @@ import { FaUser, FaMapMarkerAlt, FaPhone, FaEnvelope, FaSeedling, FaCheckCircle 
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { apiUrl } from './api';
+import { sanitizePhone, isValidPhone } from './utils/validation';
 
 function ConfirmPlan() {
   const location = useLocation();
@@ -30,11 +31,15 @@ function ConfirmPlan() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm(prev => ({ ...prev, [name]: name === 'phone' ? sanitizePhone(value) : value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!isValidPhone(form.phone)) {
+      alert('Please enter a valid 10-digit phone number');
+      return;
+    }
     setSubmitted(true);
     
     // Prepare email data
@@ -91,7 +96,7 @@ function ConfirmPlan() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}>
               <FaPhone style={{ color: '#388e3c' }} />
-              <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="Phone Number" required style={{ flex: 1, padding: '0.7em', borderRadius: '8px', border: '1px solid #e0e0e0' }} />
+              <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="Phone Number" required inputMode="numeric" pattern="^[0-9]{10}$" maxLength="10" title="Enter a valid 10-digit phone number" style={{ flex: 1, padding: '0.7em', borderRadius: '8px', border: '1px solid #e0e0e0' }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}>
               <FaEnvelope style={{ color: '#388e3c' }} />
