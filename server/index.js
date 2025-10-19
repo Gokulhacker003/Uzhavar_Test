@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config();
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
@@ -349,21 +350,80 @@ app.post('/api/store-data', (req, res) => {
 });
 
 // Send email endpoint (placeholder - implement with nodemailer or your email service)
-app.post('/api/send-email', (req, res) => {
-  console.log('Email request received:', req.body);
-  
-  // TODO: Implement actual email sending logic
-  // For now, just log and return success
-  
+app.post('/api/send-email', async (req, res) => {
   try {
-    // You would use nodemailer or another email service here
-    res.json({ 
-      success: true, 
-      message: 'Email endpoint received request (implement email service)'
-    });
+    // 1) Persist submission locally
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+
+    const submissionsPath = path.join(dataDir, 'submissions.json');
+    const emailLogPath = path.join(dataDir, 'email.log');
+
+    let submissions = [];
+    if (fs.existsSync(submissionsPath)) {
+      try {
+        submissions = JSON.parse(fs.readFileSync(submissionsPath, 'utf8')) || [];
+      } catch (_) {
+        submissions = [];
+      }
+    }
+
+    const now = new Date().toISOString();
+    const ua = req.headers['user-agent'] || '';
+    const referer = req.headers['referer'] || '';
+    const contentLength = req.headers['content-length'] || '';
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+
+    const formType = req.body?.formType || 'Form Submission';
+    const name = req.body?.name || req.body?.payload?.name || 'Unknown';
+    const toEmail = process.env.SMTP_USER || 'uzhavarconnect2025@gmail.com';
+    const subject = req.body?.subject || `${formType} from ${name}`;
+
+    const record = {
+      receivedAt: now,
+      toEmail,
+      subject,
+      payload: req.body || {},
+      metadata: { userAgent: ua, ip, referer, contentLength }
+    };
+
+    submissions.push(record);
+    fs.writeFileSync(submissionsPath, JSON.stringify(submissions, null, 2));
+
+    const logLine = `[${now}] queued to ${toEmail} | ${subject}\n`;
+    fs.appendFileSync(emailLogPath, logLine);
+
+    // 2) Optionally send real email (if enabled)
+    if (String(process.env.SEND_EMAILS).toLowerCase() === 'true') {
+      const nodemailer = require('nodemailer');
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465,
+        secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : true,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      const text = `Form Type: ${formType}\nName: ${name}\nTime: ${now}\n\nPayload:\n${JSON.stringify(req.body, null, 2)}\n`;
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        to: toEmail,
+        subject,
+        text,
+      });
+
+      fs.appendFileSync(emailLogPath, `[${now}] sent to ${toEmail} | ${subject}\n`);
+      return res.json({ success: true, message: 'Email sent', queued: false });
+    }
+
+    // If not sending, we still logged & stored
+    return res.json({ success: true, message: 'Submission stored (email sending disabled)', queued: true });
   } catch (error) {
     console.error('Error sending email:', error);
-    res.status(500).json({ error: 'Failed to send email' });
+    return res.status(500).json({ error: 'Failed to process email request', details: error.message });
   }
 });
 
