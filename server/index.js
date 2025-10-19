@@ -144,7 +144,8 @@ app.put('/api/companies/:id', upload.single('logo'), (req, res) => {
       const data = fs.readFileSync(companiesPath, 'utf8');
       let companies = JSON.parse(data);
       
-      const index = companies.findIndex(c => c.id === id);
+      // Handle both string and number IDs
+      const index = companies.findIndex(c => c.id == id);
       if (index !== -1) {
         const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo !== undefined ? req.body.logo : companies[index].logo);
         
@@ -180,7 +181,8 @@ app.delete('/api/companies/:id', (req, res) => {
       const data = fs.readFileSync(companiesPath, 'utf8');
       let companies = JSON.parse(data);
       
-      companies = companies.filter(c => c.id !== id);
+      // Handle both string and number IDs
+      companies = companies.filter(c => c.id != id);
       fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
       res.json({ message: 'Company deleted' });
     } else {
@@ -202,7 +204,8 @@ app.post('/api/companies/:companyId/products', upload.single('image'), (req, res
       const data = fs.readFileSync(companiesPath, 'utf8');
       let companies = JSON.parse(data);
       
-      const company = companies.find(c => c.id === companyId);
+      // Handle both string and number IDs
+      const company = companies.find(c => c.id == companyId);
       if (company) {
         if (!company.products) company.products = [];
         
@@ -239,11 +242,14 @@ app.put('/api/companies/:companyId/products/:productIndex', upload.single('image
       const data = fs.readFileSync(companiesPath, 'utf8');
       let companies = JSON.parse(data);
       
-      const company = companies.find(c => c.id === companyId);
-      if (company && company.products && company.products[productIndex]) {
-        const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image !== undefined ? req.body.image : company.products[productIndex].image);
+      // Handle both string and number IDs
+      const company = companies.find(c => c.id == companyId);
+      const idx = parseInt(productIndex);
+      
+      if (company && company.products && company.products[idx] !== undefined) {
+        const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image !== undefined ? req.body.image : company.products[idx].image);
         
-        company.products[productIndex] = {
+        company.products[idx] = {
           name: req.body.name,
           price: req.body.price,
           image: imagePath
@@ -272,9 +278,12 @@ app.delete('/api/companies/:companyId/products/:productIndex', (req, res) => {
       const data = fs.readFileSync(companiesPath, 'utf8');
       let companies = JSON.parse(data);
       
-      const company = companies.find(c => c.id === companyId);
-      if (company && company.products && company.products[productIndex]) {
-        company.products.splice(productIndex, 1);
+      // Handle both string and number IDs
+      const company = companies.find(c => c.id == companyId);
+      const idx = parseInt(productIndex);
+      
+      if (company && company.products && company.products[idx] !== undefined) {
+        company.products.splice(idx, 1);
         fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
         res.json(company);
       } else {
@@ -285,7 +294,7 @@ app.delete('/api/companies/:companyId/products/:productIndex', (req, res) => {
     }
   } catch (error) {
     console.error('Error deleting product:', error);
-    res.status(500).json({ error: 'Failed to delete product' });
+    res.status(500).json({ error: 'Failed to delete product', details: error.message });
   }
 });
 
