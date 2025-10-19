@@ -148,11 +148,13 @@ app.put('/api/companies/:id', upload.single('logo'), (req, res) => {
       if (index !== -1) {
         const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo !== undefined ? req.body.logo : companies[index].logo);
         
+        // Preserve products array when updating company
         companies[index] = { 
           ...companies[index], 
           name: req.body.name,
           description: req.body.description || '',
-          logo: logoPath
+          logo: logoPath,
+          products: companies[index].products || []
         };
         fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
         res.json(companies[index]);
