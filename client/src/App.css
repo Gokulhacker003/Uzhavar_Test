@@ -1671,7 +1671,501 @@ button {
   transition: var(--transition);
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);}
+  gap: var(--spacing-sm);
+}
+
+.filter-btn:hover {
+  background-color: var(--bg-alt);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.filter-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* ==================== MOBILE RESPONSIVE DESIGN ==================== */
+
+@media screen and (max-width: 1024px) {
+  :root {
+    --spacing-xl: 24px;
+    --spacing-xxl: 36px;
+  }
+  
+  .navbar-container {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .hero-section {
+    flex-direction: column;
+    min-height: auto;
+    padding-top: var(--spacing-lg);
+  }
+  
+  .hero-content h1 {
+    font-size: 2.2rem;
+  }
+  
+  .hero-image {
+    max-width: 500px;
+    width: 100%;
+  }
+  
+  .about-hero {
+    flex-direction: column;
+  }
+  
+  .construction-intro {
+    flex-direction: column;
+  }
+  
+  .fertilizer-content,
+  .service-details {
+    flex-direction: column;
+  }
+  
+  .reports-demo {
+    flex-direction: column;
+  }
+  
+  .coming-soon {
+    flex-direction: column;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  /* Typography adjustments */
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+  }
+  
+  main {
+    padding-top: 60px;
+  }
+  
+  /* Navigation mobile menu */
+  .menu-toggle {
+    display: flex;
+    z-index: 1100;
+  }
+  
+  .menu-toggle.open span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  
+  .menu-toggle.open span:nth-child(2) {
+    opacity: 0;
+  }
+  
+  .menu-toggle.open span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+  }
+  
+  .nav-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 70%;
+    max-width: 300px;
+    height: 100vh;
+    background-color: var(--bg-color);
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 80px 20px 20px;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    transition: right 0.3s ease;
+    z-index: 1000;
+    gap: 0;
+  }
+  
+  .nav-menu.open {
+    right: 0;
+  }
+  
+  .nav-menu a {
+    width: 100%;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+  }
+  
+  /* Hero section mobile */
+  .hero-content h1 {
+    font-size: 1.75rem;
+  }
+  
+  .hero-content p {
+    font-size: 1rem;
+  }
+  
+  .hero-cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .hero-cta .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Section padding mobile */
+  section {
+    padding: var(--spacing-lg) 0;
+  }
+  
+  .home-page section {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+  
+  /* Services grid mobile */
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .trust-factors {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .steps-container {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Project carousel mobile */
+  .project-image {
+    height: 220px;
+  }
+  
+  /* Plan cards mobile */
+  .plan-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .plan-card.featured {
+    transform: scale(1);
+  }
+  
+  /* Tab headers mobile */
+  .tab-headers {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  .tab-headers::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .tab-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.9rem;
+  }
+  
+  .tab-content {
+    padding: var(--spacing-md);
+  }
+  
+  /* Service cards mobile */
+  .service-cards {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+  
+  /* Construction items mobile */
+  .construction-items {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Features preview mobile */
+  .features-preview {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Team grid mobile */
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Approval demo mobile */
+  .approval-demo {
+    flex-direction: column;
+  }
+  
+  .approval-step:not(:last-child):after {
+    content: "↓";
+    right: 50%;
+    top: auto;
+    bottom: -20px;
+    transform: translateX(50%);
+  }
+  
+  /* Buttons mobile */
+  .cta-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .cta-buttons .btn {
+    width: 100%;
+  }
+  
+  /* Modal mobile */
+  .modal.soil-test-modal {
+    min-width: auto;
+    max-width: 90vw;
+    padding: 2rem 1.5rem;
+    margin: var(--spacing-md);
+  }
+  
+  .soil-test-form .form-actions {
+    flex-direction: column;
+  }
+  
+  .soil-test-form .form-actions .btn {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  /* Extra small devices */
+  :root {
+    --spacing-sm: 6px;
+    --spacing-md: 12px;
+    --spacing-lg: 18px;
+    --spacing-xl: 24px;
+    --spacing-xxl: 32px;
+  }
+  
+  .navbar-container {
+    padding: var(--spacing-sm);
+  }
+  
+  .logo-text {
+    font-size: 1.2rem;
+  }
+  
+  .logo-icon {
+    font-size: 1.4rem;
+  }
+  
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.1rem;
+  }
+  
+  .hero-content h1 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+  
+  .hero-content p {
+    font-size: 0.95rem;
+  }
+  
+  .section-heading h2 {
+    font-size: 1.5rem;
+  }
+  
+  .section-heading .tagline {
+    font-size: 1rem;
+  }
+  
+  .service-card {
+    padding: var(--spacing-lg);
+  }
+  
+  .service-card-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .service-icon {
+    font-size: 2rem;
+  }
+  
+  .btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.85rem;
+  }
+  
+  .project-image {
+    height: 180px;
+  }
+  
+  .project-info {
+    padding: var(--spacing-md);
+    width: 95%;
+  }
+  
+  .step-card,
+  .trust-card {
+    padding: var(--spacing-md);
+  }
+  
+  .team-member img {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .about-hero-content h1 {
+    font-size: 2rem;
+  }
+  
+  .about-statement {
+    font-size: 1rem;
+  }
+  
+  .about-mission blockquote {
+    font-size: 1.5rem;
+  }
+  
+  .nav-menu {
+    width: 80%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  /* Very small devices - optimize touch targets */
+  .btn {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+  
+  .nav-menu a {
+    min-height: 48px;
+    padding: 12px;
+    font-size: 1rem;
+  }
+  
+  .tab-btn {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+  
+  .filter-btn {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+  
+  input,
+  textarea,
+  select {
+    min-height: 44px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: 10px 12px;
+  }
+  
+  .service-card-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .service-icon {
+    font-size: 1.75rem;
+  }
+  
+  .trust-icon,
+  .step-icon {
+    font-size: 2rem;
+  }
+  
+  .hero-section {
+    padding-top: var(--spacing-md);
+  }
+  
+  .carousel-dots .dot {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* Landscape orientation for mobile */
+@media screen and (max-height: 600px) and (orientation: landscape) {
+  .hero-section {
+    min-height: auto;
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+  
+  .nav-menu {
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  main {
+    padding-top: 55px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .navbar,
+  .menu-toggle,
+  .btn,
+  .cta-buttons,
+  .hero-cta {
+    display: none;
+  }
+  
+  main {
+    padding-top: 0;
+  }
+  
+  .home-page section,
+  section {
+    padding: 20px 0;
+  }
+}
+
+/* Accessibility improvements for mobile */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Touch-friendly hover states */
+@media (hover: none) and (pointer: coarse) {
+  .service-card:hover,
+  .trust-card:hover,
+  .step-card:hover,
+  .plan-card:hover {
+    transform: none;
+  }
+  
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+  }
+  
+  .hero-image img:hover {
+    transform: none;
+  }
+}
 
   /* App.css for Ullavar Connect */
 /* General Styles */
