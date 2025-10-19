@@ -294,6 +294,9 @@ button {
   width: 30px;
   height: 21px;
   cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 8px;
 }
 
 .menu-toggle span {
@@ -301,6 +304,21 @@ button {
   height: 3px;
   background-color: var(--primary-color);
   transition: var(--transition);
+}
+
+/* Mobile nav overlay backdrop */
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 900;
+}
+.nav-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Buttons */
@@ -1736,6 +1754,15 @@ button {
 }
 
 @media screen and (max-width: 768px) {
+  /* Navbar sizing & positioning */
+  .navbar {
+    min-height: 56px;
+  }
+  .navbar-container {
+    position: relative;
+    height: 56px !important;
+  }
+
   /* Typography adjustments */
   h1 {
     font-size: 2rem;
@@ -1757,6 +1784,10 @@ button {
   .menu-toggle {
     display: flex;
     z-index: 1100;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
   }
   
   .menu-toggle.open span:nth-child(1) {

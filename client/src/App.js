@@ -353,12 +353,21 @@ function App() {
               <GiWheat className="logo-icon" style={{ fontSize: '1.2em' }} />
               <span className="logo-text" style={{ fontWeight: 700, color: '#388e3c' }}>Ullavar Connect</span>
             </div>
-            <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <button
+              className={`menu-toggle ${isMenuOpen ? 'open' : ''}`}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle navigation menu"
+              aria-controls="primary-navigation"
+              aria-expanded={isMenuOpen}
+              type="button"
+            >
               <span></span>
               <span></span>
               <span></span>
-            </div>
-            <ul className={`nav-menu ${isMenuOpen ? 'open' : ''}`} style={{ fontFamily: 'Segoe UI, Arial, sans-serif', fontSize: '13px', fontWeight: 500, display: 'flex', flexWrap: 'nowrap', gap: '0.8em', justifyContent: 'center', alignItems: 'center', listStyle: 'none', margin: 0, padding: 0, overflowX: 'auto', whiteSpace: 'nowrap' }}>
+            </button>
+            {/* Backdrop overlay for mobile menu */}
+            <div className={`nav-overlay ${isMenuOpen ? 'open' : ''}`} onClick={() => setIsMenuOpen(false)} />
+            <ul id="primary-navigation" className={`nav-menu ${isMenuOpen ? 'open' : ''}`} style={{ fontFamily: 'Segoe UI, Arial, sans-serif', fontSize: '13px', fontWeight: 500, display: 'flex', flexWrap: 'nowrap', gap: '0.8em', justifyContent: 'center', alignItems: 'center', listStyle: 'none', margin: 0, padding: 0, overflowX: 'auto', whiteSpace: 'nowrap' }}>
               <li><NavLink to="/" end onClick={() => setIsMenuOpen(false)}>Home</NavLink></li>
               <li><NavLink to="/about" onClick={() => setIsMenuOpen(false)}>About</NavLink></li>
               <li><NavLink to="/companies" onClick={() => setIsMenuOpen(false)}>Our Companies</NavLink></li>
