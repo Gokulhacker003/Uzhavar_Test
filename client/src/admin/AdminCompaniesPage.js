@@ -88,7 +88,7 @@ export default function AdminCompaniesPage({ onLogout }) {
       formData.append('logo', form.logo);
     }
 
-    fetch(`/api/companies/${editingId}`, {
+    fetch(apiUrl(`/api/companies/${editingId}`), {
       method: 'PUT',
       body: formData
     })
@@ -148,7 +148,7 @@ export default function AdminCompaniesPage({ onLogout }) {
       formData.append('image', productForm.image);
     }
 
-    fetch(`/api/companies/${companyId}/products`, {
+    fetch(apiUrl(`/api/companies/${companyId}/products`), {
       method: 'POST',
       body: formData
     })
@@ -177,7 +177,7 @@ export default function AdminCompaniesPage({ onLogout }) {
       formData.append('image', productForm.image);
     }
 
-    fetch(`/api/companies/${companyId}/products/${productIndex}`, {
+    fetch(apiUrl(`/api/companies/${companyId}/products/${productIndex}`), {
       method: 'PUT',
       body: formData
     })
