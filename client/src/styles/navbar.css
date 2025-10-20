@@ -1,0 +1,178 @@
+/* ==================== NAVIGATION BAR ==================== */
+
+.navbar {
+  background-color: var(--bg-color);
+  box-shadow: var(--shadow-sm);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.logo {
+  color: var(--primary-dark); /* Old vintage brown color */
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
+}
+
+.logo:hover {
+  color: var(--primary-color); /* Sienna brown on hover */
+}
+
+.nav-menu {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+.nav-menu li a {
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 10px 15px;
+  display: block;
+  white-space: nowrap;
+}
+
+.nav-menu li a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.nav-menu li a:hover {
+  color: var(--primary-color);
+  background-color: var(--bg-light);
+  transform: translateY(-2px);
+}
+
+.nav-menu li a:hover::after {
+  width: 100%;
+}
+
+/* BURGER ICON */
+.burger {
+  display: none;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 25px;
+  height: 18px;
+}
+
+.burger div {
+  width: 100%;
+  height: 3px;
+  background-color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+/* BURGER ACTIVE ANIMATION */
+.burger.open div:nth-child(1) {
+  transform: translateY(7.5px) rotate(45deg);
+}
+
+.burger.open div:nth-child(2) {
+  opacity: 0;
+}
+
+.burger.open div:nth-child(3) {
+  transform: translateY(-7.5px) rotate(-45deg);
+}
+
+/* FADE IN ANIMATION */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RESPONSIVE MENU - MOBILE ONLY */
+@media (max-width: 768px) {
+  .nav-menu {
+    display: none !important;
+    flex-direction: column !important;
+    position: absolute !important;
+    top: 60px !important;
+    right: 20px !important;
+    background-color: var(--bg-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    width: 200px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    animation: fadeIn 0.3s ease !important;
+    box-shadow: var(--shadow-md) !important;
+    z-index: 1001 !important;
+    overflow-x: visible !important;
+    white-space: normal !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .nav-menu.show {
+    display: flex !important;
+  }
+
+  .nav-menu li {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .nav-menu li a {
+    text-align: left !important;
+    padding: 12px 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    font-size: 0.9rem !important;
+    white-space: normal !important;
+  }
+
+  .nav-menu li:last-child a {
+    border-bottom: none !important;
+  }
+
+  .nav-menu li a:hover {
+    background-color: var(--bg-light) !important;
+    transform: none !important;
+  }
+
+  .nav-menu li a::after {
+    display: none !important;
+  }
+
+  .burger {
+    display: flex !important;
+    z-index: 1002 !important;
+  }
+}
