@@ -1,29 +1,39 @@
 import React, { useEffect, useState } from "react";
+import { apiUrl } from './api';
 
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [error, setError] = useState(null);
 
   const loadCompanies = () => {
     setLoading(true);
+    setError(null);
     // Add cache-busting parameter to ensure fresh data
     const timestamp = new Date().getTime();
-    fetch(`/api/companies?_t=${timestamp}`, {
+    fetch(apiUrl(`/api/companies?_t=${timestamp}`), {
       cache: 'no-cache',
       headers: {
         'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
+        'Pragma': 'no-cache',
+        'Accept': 'application/json'
       }
     })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+        return r.json();
+      })
       .then(data => {
+        console.log('Companies loaded:', data);
         setCompanies(data);
         setLastUpdated(new Date());
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Error loading companies:', err);
+        setError(err.message);
         setCompanies(null);
         setLoading(false);
       });
@@ -248,6 +258,23 @@ export default function CompaniesPage() {
               </button>
             </div>
           </div>
+          
+          {error && (
+            <div style={{ 
+              background: '#ffebee', 
+              color: '#c62828', 
+              padding: '1em', 
+              borderRadius: 8, 
+              marginBottom: '1.5em',
+              textAlign: 'center',
+              border: '1px solid #ef5350'
+            }}>
+              <strong>⚠️ Connection Error:</strong> {error}
+              <br />
+              <small>Make sure the backend server is running on port 4000</small>
+            </div>
+          )}
+          
           <div style={{ display: 'flex', gap: '2.5em', flexWrap: 'wrap', justifyContent: 'center' }}>
             {companies && companies.length > 0 ? (
               companies.map(c => renderCompanyCard(c, c.name && c.name.includes('Masala') ? fallbackMasala : fallbackOrganics))

@@ -23,6 +23,7 @@ import SellProducePage from './pages/SellProducePage';
 import JoinUsPage from './pages/JoinUsPage';
 import LandPage from './pages/LandPage';
 import ConstructionPage from './pages/ConstructionPage';
+import ScrollToTop from './ScrollToTop';
 // ...existing code...
 
 // Main projects array for carousel and other usage
@@ -176,6 +177,8 @@ function App() {
           </div>
         </nav>
 
+        <ScrollToTop />
+        
         <main>
           <Routes>
             <Route path="/" element={<HomePage currentSlide={currentSlide} />} />
@@ -286,8 +289,12 @@ function App() {
           <div className="footer-cta">
             <h2>Start with a One-Time Project or Choose a Monthly Plan</h2>
             <div className="cta-buttons">
-              <button className="btn btn-primary">Book Now</button>
-              <button className="btn btn-secondary">Talk to Our Team</button>
+              <Link to="/book-team">
+                <button className="btn btn-primary">Book Now</button>
+              </Link>
+              <Link to="/join">
+                <button className="btn btn-primary">Join US</button>
+              </Link>
             </div>
           </div>
 

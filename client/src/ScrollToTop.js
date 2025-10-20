@@ -5,13 +5,12 @@ export default function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Ensure we reset scroll to top on every navigation
-    try {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    } catch (err) {
-      // fallback for older browsers
-      window.scrollTo(0, 0);
-    }
+    // Scroll to top immediately when route changes
+    window.scrollTo(0, 0);
+    
+    // Also scroll the document element (for some browsers)
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }, [pathname]);
 
   return null;

@@ -122,7 +122,7 @@ function ManageFarmPage(props) {
               <p>Custom fertilizer scheduling based on crop needs and seasonal conditions.</p>
               <div className="fertilizer-content">
                 <div className="fertilizer-image">
-                  <img src="https://images.unsplash.com/photo-1563514227147-6d2ff665a7a4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Fertilizer Application" />
+                  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9r6-1--iDfA2DNKl5-VDVJd6rXMKskzmw3Q&s" alt="Fertilizer Application" />
                 </div>
                 <div className="fertilizer-info">
                   <h3>Weather-Synced Fertilizer Application</h3>
@@ -145,7 +145,7 @@ function ManageFarmPage(props) {
               <p>Maintain healthy growth and protect your crops from pests.</p>
               <div className="service-details">
                 <div className="service-image">
-                  <img src="https://images.unsplash.com/photo-1627646295764-3fb77cbd2d1f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Pruning Service" />
+                  <img src="https://cropgenetechnology.com/shop/black-killer-powerful-contact-insecticide-for-maximum-pest-control/" alt="Pruning & Pest Control" />
                 </div>
                 <div className="service-text">
                   <h3>Expert Pruning Services</h3>
@@ -177,7 +177,7 @@ function ManageFarmPage(props) {
                   <p>Storage solutions for irrigation needs.</p>
                 </div>
                 <div className="construction-item">
-                  <img src="/assert/storage-shed.jpg" alt="Storage Shed" />
+                  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTg2IXEk5YgEjt7HWuPiCCxdDdIJoDNbTpM7Q&s" alt="Storage Shed" />
                   <h3>Storage Sheds</h3>
                   <p>Protect equipment and harvest.</p>
                 </div>
@@ -239,8 +239,8 @@ function ManageFarmPage(props) {
       <div className="farm-cta">
         <div className="cta-buttons">
           <button className="btn btn-primary" onClick={() => setActiveTab('monthly')}>Start AMC</button>
-          <button className="btn btn-secondary" onClick={() => setShowProjectForm(true)}>Book Project</button>
-          <Link to="/farm-details" className="btn btn-success" style={{marginLeft:'1em',background:'#388e3c',color:'#fff'}}>Upload My Farm Details</Link>
+          <button className="btn btn-primary" onClick={() => setShowProjectForm(true)}>Book Project</button>
+          <Link to="/farm-details" className="btn btn-primary" style={{marginLeft:'1em',background:'#388e3c',color:'#fff'}}>Upload My Farm Details</Link>
         </div>
         {showProjectForm && (
           <div className="modal-overlay">

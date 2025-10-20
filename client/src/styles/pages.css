@@ -1204,20 +1204,21 @@ footer {
 .footer-content {
   display: flex;
   justify-content: space-between;
-  gap: var(--spacing-xl);
+  gap: 120px;
   margin-bottom: var(--spacing-xl);
   flex-wrap: wrap;
 }
 
 .footer-section {
   flex: 1;
-  min-width: 250px;
+  min-width: 400px;
 }
 
 .footer-section h3 {
   color: var(--primary-light);
   margin-bottom: var(--spacing-md);
   font-size: 1.3rem;
+  
 }
 
 .footer-section p {
@@ -1265,6 +1266,14 @@ footer {
   gap: var(--spacing-md);
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.cta-buttons a {
+  text-decoration: none;
+}
+
+.cta-buttons button {
+  cursor: pointer;
 }
 
 /* Footer Bottom */
