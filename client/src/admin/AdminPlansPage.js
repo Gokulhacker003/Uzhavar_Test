@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { apiUrl } from '../api';
-import { getAuthHeaders, handleAuthError } from './authHelper';
 import '../App.css';
 
 export default function AdminPlansPage() {
@@ -17,9 +16,25 @@ export default function AdminPlansPage() {
     isPopular: false
   });
 
+  // Password protection
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const ADMIN_PASSWORD = 'ullavar2025';
+
+  function handlePasswordSubmit(e) {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+    } else {
+      alert('Incorrect password!');
+    }
+  }
+
   useEffect(() => {
-    loadPlans();
-  }, []);
+    if (isAuthenticated) {
+      loadPlans();
+    }
+  }, [isAuthenticated]);
 
   const loadPlans = () => {
     setLoading(true);
@@ -66,14 +81,14 @@ export default function AdminPlansPage() {
 
     fetch(url, {
       method,
-      headers: getAuthHeaders(),
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-admin-key': ADMIN_PASSWORD
+      },
       body: JSON.stringify(planData)
     })
       .then(r => {
-        if (!r.ok) {
-          handleAuthError(r);
-          throw new Error('Request failed');
-        }
+        if (!r.ok) throw new Error('Authentication failed');
         return r.json();
       })
       .then(() => {
@@ -85,7 +100,7 @@ export default function AdminPlansPage() {
       })
       .catch(err => {
         console.error(err);
-        alert('Failed to save plan');
+        alert('Failed to save plan: ' + err.message);
       });
   };
 
@@ -107,13 +122,12 @@ export default function AdminPlansPage() {
 
     fetch(apiUrl(`/api/plans/${planId}`), {
       method: 'DELETE',
-      headers: getAuthHeaders()
+      headers: { 
+        'x-admin-key': ADMIN_PASSWORD
+      }
     })
       .then(r => {
-        if (!r.ok) {
-          handleAuthError(r);
-          throw new Error('Request failed');
-        }
+        if (!r.ok) throw new Error('Authentication failed');
         return r.json();
       })
       .then(() => {
@@ -122,7 +136,7 @@ export default function AdminPlansPage() {
       })
       .catch(err => {
         console.error(err);
-        alert('Failed to delete plan');
+        alert('Failed to delete plan: ' + err.message);
       });
   };
 
@@ -131,6 +145,84 @@ export default function AdminPlansPage() {
     setEditingPlan(null);
     setFormData({ name: '', price: '', duration: 'Monthly', features: '', color: '#4CAF50', isPopular: false });
   };
+
+  // Show password form if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <div style={{
+          background: 'white',
+          padding: '3em',
+          borderRadius: 16,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          maxWidth: 400,
+          width: '100%'
+        }}>
+          <h2 style={{ 
+            color: '#388e3c', 
+            marginBottom: '1.5em',
+            textAlign: 'center',
+            fontSize: '1.8em'
+          }}>
+            🔒 Admin Access
+          </h2>
+          <p style={{ 
+            textAlign: 'center', 
+            color: '#666', 
+            marginBottom: '2em' 
+          }}>
+            Enter password to manage AMC plans
+          </p>
+          <form onSubmit={handlePasswordSubmit}>
+            <input
+              type="password"
+              placeholder="Enter admin password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '14px',
+                border: '2px solid #ddd',
+                borderRadius: 8,
+                fontSize: '1em',
+                marginBottom: '1.5em',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.3s'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#388e3c'}
+              onBlur={(e) => e.target.style.borderColor = '#ddd'}
+              autoFocus
+            />
+            <button
+              type="submit"
+              style={{
+                width: '100%',
+                background: '#388e3c',
+                color: 'white',
+                border: 'none',
+                padding: '14px',
+                borderRadius: 8,
+                fontSize: '1em',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background 0.3s'
+              }}
+              onMouseOver={(e) => e.target.style.background = '#2e7d32'}
+              onMouseOut={(e) => e.target.style.background = '#388e3c'}
+            >
+              🔓 Unlock
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 1200, margin: '2em auto', padding: '2em' }}>

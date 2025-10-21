@@ -8,18 +8,6 @@ const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Admin Authentication Configuration
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Uzhavar@2025';
-
-// Simple in-memory session storage (for production, use Redis or database)
-const activeSessions = new Map();
-
-// Generate simple session token
-function generateSessionToken() {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
-}
-
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -57,68 +45,16 @@ app.use(cors({
 
 app.use(express.json());
 
-// Authentication Middleware
-function requireAuth(req, res, next) {
-  const token = req.headers['authorization']?.replace('Bearer ', '');
-  
-  if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-  
-  const session = activeSessions.get(token);
-  if (!session || session.expiresAt < Date.now()) {
-    activeSessions.delete(token);
-    return res.status(401).json({ error: 'Session expired. Please login again.' });
-  }
-  
-  // Extend session on activity
-  session.expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
-  req.user = session.user;
-  next();
-}
-
-// Admin Login Endpoint
-app.post('/api/admin/login', (req, res) => {
-  const { username, password } = req.body;
-  
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username and password required' });
-  }
-  
-  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    const token = generateSessionToken();
-    const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
-    
-    activeSessions.set(token, {
-      user: username,
-      createdAt: Date.now(),
-      expiresAt: expiresAt
-    });
-    
-    res.json({
-      success: true,
-      token: token,
-      expiresAt: expiresAt,
-      user: username
-    });
+// Admin password middleware
+const ADMIN_PASSWORD = 'ullavar2025';
+function requireAdminAuth(req, res, next) {
+  const authHeader = req.headers['x-admin-key'];
+  if (authHeader === ADMIN_PASSWORD) {
+    next();
   } else {
-    res.status(401).json({ error: 'Invalid credentials' });
+    res.status(401).json({ error: 'Unauthorized: Invalid admin key' });
   }
-});
-
-// Admin Logout Endpoint
-app.post('/api/admin/logout', (req, res) => {
-  const token = req.headers['authorization']?.replace('Bearer ', '');
-  if (token) {
-    activeSessions.delete(token);
-  }
-  res.json({ success: true, message: 'Logged out successfully' });
-});
-
-// Verify Session Endpoint
-app.get('/api/admin/verify', requireAuth, (req, res) => {
-  res.json({ success: true, user: req.user });
-});
+}
 
 // Serve static files - uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -135,8 +71,8 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: 'Hello from backend!' });
 });
 
-// Get all submissions (Protected - Admin Only)
-app.get('/api/submissions', requireAuth, (req, res) => {
+// Get all submissions
+app.get('/api/submissions', (req, res) => {
   const fs = require('fs');
   const path = require('path');
   const submissionsPath = path.join(__dirname, 'data', 'submissions.json');
@@ -155,7 +91,7 @@ app.get('/api/submissions', requireAuth, (req, res) => {
   }
 });
 
-// Get all companies (Public - No Auth Required)
+// Get all companies
 app.get('/api/companies', (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   
@@ -174,7 +110,7 @@ app.get('/api/companies', (req, res) => {
 });
 
 // Create new company
-app.post('/api/companies', requireAuth, upload.single('logo'), (req, res) => {
+app.post('/api/companies', upload.single('logo'), (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   
   try {
@@ -211,7 +147,7 @@ app.post('/api/companies', requireAuth, upload.single('logo'), (req, res) => {
 });
 
 // Update company
-app.put('/api/companies/:id', requireAuth, upload.single('logo'), (req, res) => {
+app.put('/api/companies/:id', upload.single('logo'), (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { id } = req.params;
   
@@ -248,7 +184,7 @@ app.put('/api/companies/:id', requireAuth, upload.single('logo'), (req, res) => 
 });
 
 // Delete company
-app.delete('/api/companies/:id', requireAuth, (req, res) => {
+app.delete('/api/companies/:id', (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { id } = req.params;
   
@@ -271,7 +207,7 @@ app.delete('/api/companies/:id', requireAuth, (req, res) => {
 });
 
 // Add product to company
-app.post('/api/companies/:companyId/products', requireAuth, upload.single('image'), (req, res) => {
+app.post('/api/companies/:companyId/products', upload.single('image'), (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { companyId } = req.params;
   
@@ -309,7 +245,7 @@ app.post('/api/companies/:companyId/products', requireAuth, upload.single('image
 });
 
 // Update product in company
-app.put('/api/companies/:companyId/products/:productIndex', requireAuth, upload.single('image'), (req, res) => {
+app.put('/api/companies/:companyId/products/:productIndex', upload.single('image'), (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { companyId, productIndex } = req.params;
   
@@ -345,7 +281,7 @@ app.put('/api/companies/:companyId/products/:productIndex', requireAuth, upload.
 });
 
 // Delete product from company
-app.delete('/api/companies/:companyId/products/:productIndex', requireAuth, (req, res) => {
+app.delete('/api/companies/:companyId/products/:productIndex', (req, res) => {
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { companyId, productIndex } = req.params;
   
@@ -375,7 +311,7 @@ app.delete('/api/companies/:companyId/products/:productIndex', requireAuth, (req
 });
 
 // Get user data
-app.get('/api/user-data', requireAuth, (req, res) => {
+app.get('/api/user-data', (req, res) => {
   const userDataPath = path.join(__dirname, 'data', 'user-data.json');
   
   try {
@@ -511,7 +447,7 @@ app.post('/api/send-email', async (req, res) => {
 
 // ==================== PLANS MANAGEMENT API ====================
 
-// Get all plans (Public - No Auth Required)
+// Get all plans
 app.get('/api/plans', (req, res) => {
   const plansPath = path.join(__dirname, 'data', 'plans.json');
   
@@ -577,8 +513,8 @@ app.get('/api/plans', (req, res) => {
   }
 });
 
-// Create new plan
-app.post('/api/plans', requireAuth, (req, res) => {
+// Create new plan (protected)
+app.post('/api/plans', requireAdminAuth, (req, res) => {
   const plansPath = path.join(__dirname, 'data', 'plans.json');
   
   try {
@@ -614,8 +550,8 @@ app.post('/api/plans', requireAuth, (req, res) => {
   }
 });
 
-// Update plan
-app.put('/api/plans/:id', requireAuth, (req, res) => {
+// Update plan (protected)
+app.put('/api/plans/:id', requireAdminAuth, (req, res) => {
   const plansPath = path.join(__dirname, 'data', 'plans.json');
   const { id } = req.params;
   
@@ -649,8 +585,8 @@ app.put('/api/plans/:id', requireAuth, (req, res) => {
   }
 });
 
-// Delete plan
-app.delete('/api/plans/:id', requireAuth, (req, res) => {
+// Delete plan (protected)
+app.delete('/api/plans/:id', requireAdminAuth, (req, res) => {
   const plansPath = path.join(__dirname, 'data', 'plans.json');
   const { id } = req.params;
   

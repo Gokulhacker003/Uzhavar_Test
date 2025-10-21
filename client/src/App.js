@@ -4,8 +4,6 @@ import AdminCompaniesPage from './admin/AdminCompaniesPage';
 import AdminPlansPage from './admin/AdminPlansPage';
 import AdminSubmissionsPage from './admin/AdminSubmissionsPage';
 import AdminUserDataPage from './admin/AdminUserDataPage';
-import AdminLogin from './admin/AdminLogin';
-import ProtectedRoute from './admin/ProtectedRoute';
 import 'leaflet/dist/leaflet.css';
 import CompaniesPage from './CompaniesPage';
 import RequestQuotePage from './RequestQuotePage';
@@ -36,16 +34,6 @@ import { apiUrl } from './api';
 
 
 function App() {
-  // Authentication state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Logout handler
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    setIsAuthenticated(false);
-    window.location.href = '/admin/login';
-  };
-
   // Modal state for Book a Project (legacy, not used)
   // const [showProjectModal, setShowProjectModal] = useState(false);
 
@@ -241,31 +229,10 @@ function App() {
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/join" element={<JoinUsPage />} />
             <Route path="/confirm-plan" element={<ConfirmPlan />} />
-            
-            {/* Admin Login Route */}
-            <Route path="/admin/login" element={<AdminLogin onLogin={() => setIsAuthenticated(true)} />} />
-            
-            {/* Protected Admin Routes */}
-            <Route path="/admin/companies" element={
-              <ProtectedRoute>
-                <AdminCompaniesPage onLogout={handleLogout} />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/plans" element={
-              <ProtectedRoute>
-                <AdminPlansPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/submissions" element={
-              <ProtectedRoute>
-                <AdminSubmissionsPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/user-data" element={
-              <ProtectedRoute>
-                <AdminUserDataPage />
-              </ProtectedRoute>
-            } />
+            <Route path="/admin/companies" element={<AdminCompaniesPage onLogout={() => { /* navigation fallback if needed */ }} />} />
+            <Route path="/admin/plans" element={<AdminPlansPage />} />
+            <Route path="/admin/submissions" element={<AdminSubmissionsPage />} />
+            <Route path="/admin/user-data" element={<AdminUserDataPage />} />
           </Routes>
           {/* Soil Test Modal for Fertilizer Plan - only rendered in App */}
           {showSoilTestModal && (
