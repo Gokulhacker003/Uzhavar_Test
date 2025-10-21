@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { apiUrl } from './api';
+import { apiUrl, imageUrl } from './api';
 
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState(null);
@@ -74,7 +74,7 @@ export default function CompaniesPage() {
       }}
     >
       <img 
-        src={c.logo || (c.products && c.products.length > 0 && c.products[0].image ? c.products[0].image : fallbackImg)} 
+        src={imageUrl(c.logo) || (c.products && c.products.length > 0 && c.products[0].image ? imageUrl(c.products[0].image) : fallbackImg)} 
         alt={c.name} 
         style={{ width: 80, height: 80, borderRadius: '50%', marginBottom: '1em', objectFit: 'cover', boxShadow: '0 2px 8px rgba(56,142,60,0.10)' }} 
       />
@@ -125,7 +125,7 @@ export default function CompaniesPage() {
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1em' }}>
           <img 
-            src={company.logo || (company.products && company.products.length > 0 && company.products[0].image ? company.products[0].image : (company.name && company.name.includes('Masala') ? fallbackMasala : fallbackOrganics))} 
+            src={imageUrl(company.logo) || (company.products && company.products.length > 0 && company.products[0].image ? imageUrl(company.products[0].image) : (company.name && company.name.includes('Masala') ? fallbackMasala : fallbackOrganics))} 
             alt={company.name} 
             style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 8px rgba(56,142,60,0.10)' }} 
           />
@@ -167,7 +167,7 @@ export default function CompaniesPage() {
                 }}>
                   {product.image ? (
                     <img 
-                      src={product.image} 
+                      src={imageUrl(product.image)} 
                       alt={product.name} 
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                     />
