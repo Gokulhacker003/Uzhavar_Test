@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiUrl } from '../api';
+import { authHelper } from './authHelper';
 import '../App.css';
 
 function AdminPlansPage() {
+  const navigate = useNavigate();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -17,6 +20,14 @@ function AdminPlansPage() {
     popular: false
   });
   const [featureInput, setFeatureInput] = useState('');
+
+  // Logout handler
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      authHelper.logout();
+      navigate('/admin/login', { replace: true });
+    }
+  };
 
   useEffect(() => {
     loadPlans();
@@ -144,23 +155,45 @@ function AdminPlansPage() {
 
   return (
     <div style={{ maxWidth: 1200, margin: '2em auto', padding: '2em' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2em' }}>
-        <h1 style={{ color: '#388e3c', margin: 0 }}>📋 Manage AMC Plans</h1>
-        <button 
-          onClick={() => setShowForm(!showForm)}
-          style={{
-            background: showForm ? '#666' : '#388e3c',
-            color: 'white',
-            border: 'none',
-            padding: '12px 24px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            fontWeight: 'bold'
-          }}
-        >
-          {showForm ? 'Cancel' : '+ Add New Plan'}
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2em', flexWrap: 'wrap', gap: '1em' }}>
+        <div>
+          <h1 style={{ color: '#388e3c', margin: 0 }}>📋 Manage AMC Plans</h1>
+          <p style={{ color: '#666', margin: '0.5em 0 0 0', fontSize: '0.9em' }}>
+            👤 Logged in as: <strong>{authHelper.getUser()?.username || 'Admin'}</strong>
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '1em' }}>
+          <button 
+            onClick={() => setShowForm(!showForm)}
+            style={{
+              background: showForm ? '#666' : '#388e3c',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: 'bold'
+            }}
+          >
+            {showForm ? 'Cancel' : '+ Add New Plan'}
+          </button>
+          <button 
+            onClick={handleLogout}
+            style={{
+              background: '#d32f2f',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: 'bold'
+            }}
+          >
+            🚪 Logout
+          </button>
+        </div>
       </div>
 
       {showForm && (

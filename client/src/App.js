@@ -4,6 +4,8 @@ import AdminCompaniesPage from './admin/AdminCompaniesPage';
 import AdminSubmissionsPage from './admin/AdminSubmissionsPage';
 import AdminUserDataPage from './admin/AdminUserDataPage';
 import AdminPlansPage from './admin/AdminPlansPage';
+import AdminLogin from './admin/AdminLogin';
+import ProtectedRoute from './admin/ProtectedRoute';
 import 'leaflet/dist/leaflet.css';
 import CompaniesPage from './CompaniesPage';
 import RequestQuotePage from './RequestQuotePage';
@@ -229,10 +231,19 @@ function App() {
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/join" element={<JoinUsPage />} />
             <Route path="/confirm-plan" element={<ConfirmPlan />} />
+            
+            {/* Admin Login Route */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            
+            {/* Protected Admin Routes */}
             <Route path="/admin/companies" element={<AdminCompaniesPage onLogout={() => { /* navigation fallback if needed */ }} />} />
             <Route path="/admin/submissions" element={<AdminSubmissionsPage />} />
             <Route path="/admin/user-data" element={<AdminUserDataPage />} />
-            <Route path="/admin/plans" element={<AdminPlansPage />} />
+            <Route path="/admin/plans" element={
+              <ProtectedRoute>
+                <AdminPlansPage />
+              </ProtectedRoute>
+            } />
           </Routes>
           {/* Soil Test Modal for Fertilizer Plan - only rendered in App */}
           {showSoilTestModal && (
