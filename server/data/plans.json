@@ -1,6 +1,6 @@
 [
   {
-    "id": "1",
+    "id": "basic",
     "name": "Basic Plan",
     "price": "5000",
     "duration": "Monthly",
@@ -10,11 +10,11 @@
       "Pest monitoring",
       "Monthly report"
     ],
-    "color": "#2196F3",
-    "isPopular": false
+    "popular": false,
+    "description": "Essential maintenance for small farms"
   },
   {
-    "id": "2",
+    "id": "standard",
     "name": "Standard Plan",
     "price": "10000",
     "duration": "Monthly",
@@ -25,13 +25,13 @@
       "Fertilizer application",
       "Detailed bi-weekly reports"
     ],
-    "color": "#4CAF50",
-    "isPopular": true
+    "popular": true,
+    "description": "Comprehensive care for growing farms"
   },
   {
-    "id": "3",
+    "id": "premium",
     "name": "Premium Plan",
-    "price": "18000",
+    "price": "20000",
     "duration": "Monthly",
     "features": [
       "Weekly farm visit",
@@ -41,7 +41,7 @@
       "Weekly detailed reports",
       "Priority support"
     ],
-    "color": "#FF9800",
-    "isPopular": false
+    "popular": false,
+    "description": "Full-service management for large farms"
   }
 ]

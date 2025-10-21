@@ -45,17 +45,6 @@ app.use(cors({
 
 app.use(express.json());
 
-// Admin password middleware
-const ADMIN_PASSWORD = 'ullavar2025';
-function requireAdminAuth(req, res, next) {
-  const authHeader = req.headers['x-admin-key'];
-  if (authHeader === ADMIN_PASSWORD) {
-    next();
-  } else {
-    res.status(401).json({ error: 'Unauthorized: Invalid admin key' });
-  }
-}
-
 // Serve static files - uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -445,7 +434,7 @@ app.post('/api/send-email', async (req, res) => {
   }
 });
 
-// ==================== PLANS MANAGEMENT API ====================
+// ==================== PLANS API ENDPOINTS ====================
 
 // Get all plans
 app.get('/api/plans', (req, res) => {
@@ -457,55 +446,7 @@ app.get('/api/plans', (req, res) => {
       const plans = JSON.parse(data);
       res.json(plans);
     } else {
-      // Return default plans if file doesn't exist
-      const defaultPlans = [
-        {
-          id: '1',
-          name: 'Basic Plan',
-          price: '5000',
-          duration: 'Monthly',
-          features: [
-            'Monthly farm visit',
-            'Basic irrigation check',
-            'Pest monitoring',
-            'Monthly report'
-          ],
-          color: '#2196F3',
-          isPopular: false
-        },
-        {
-          id: '2',
-          name: 'Standard Plan',
-          price: '10000',
-          duration: 'Monthly',
-          features: [
-            'Bi-weekly farm visit',
-            'Full irrigation maintenance',
-            'Pest control application',
-            'Fertilizer application',
-            'Detailed bi-weekly reports'
-          ],
-          color: '#4CAF50',
-          isPopular: true
-        },
-        {
-          id: '3',
-          name: 'Premium Plan',
-          price: '18000',
-          duration: 'Monthly',
-          features: [
-            'Weekly farm visit',
-            'Complete farm management',
-            'Advanced pest management',
-            'Customized fertilizer program',
-            'Weekly detailed reports',
-            'Priority support'
-          ],
-          color: '#FF9800',
-          isPopular: false
-        }
-      ];
-      res.json(defaultPlans);
+      res.json([]);
     }
   } catch (error) {
     console.error('Error reading plans:', error);
@@ -513,8 +454,8 @@ app.get('/api/plans', (req, res) => {
   }
 });
 
-// Create new plan (protected)
-app.post('/api/plans', requireAdminAuth, (req, res) => {
+// Create new plan
+app.post('/api/plans', (req, res) => {
   const plansPath = path.join(__dirname, 'data', 'plans.json');
   
   try {
@@ -525,13 +466,13 @@ app.post('/api/plans', requireAdminAuth, (req, res) => {
     }
     
     const newPlan = {
-      id: Date.now().toString(),
+      id: req.body.id || Date.now().toString(),
       name: req.body.name,
       price: req.body.price,
       duration: req.body.duration || 'Monthly',
       features: req.body.features || [],
-      color: req.body.color || '#4CAF50',
-      isPopular: req.body.isPopular || false
+      popular: req.body.popular || false,
+      description: req.body.description || ''
     };
     
     plans.push(newPlan);
@@ -550,8 +491,8 @@ app.post('/api/plans', requireAdminAuth, (req, res) => {
   }
 });
 
-// Update plan (protected)
-app.put('/api/plans/:id', requireAdminAuth, (req, res) => {
+// Update plan
+app.put('/api/plans/:id', (req, res) => {
   const plansPath = path.join(__dirname, 'data', 'plans.json');
   const { id } = req.params;
   
@@ -562,14 +503,14 @@ app.put('/api/plans/:id', requireAdminAuth, (req, res) => {
       
       const index = plans.findIndex(p => p.id === id);
       if (index !== -1) {
-        plans[index] = {
+        plans[index] = { 
           ...plans[index],
           name: req.body.name,
           price: req.body.price,
           duration: req.body.duration || 'Monthly',
           features: req.body.features || [],
-          color: req.body.color || '#4CAF50',
-          isPopular: req.body.isPopular || false
+          popular: req.body.popular || false,
+          description: req.body.description || ''
         };
         fs.writeFileSync(plansPath, JSON.stringify(plans, null, 2));
         res.json(plans[index]);
@@ -585,8 +526,8 @@ app.put('/api/plans/:id', requireAdminAuth, (req, res) => {
   }
 });
 
-// Delete plan (protected)
-app.delete('/api/plans/:id', requireAdminAuth, (req, res) => {
+// Delete plan
+app.delete('/api/plans/:id', (req, res) => {
   const plansPath = path.join(__dirname, 'data', 'plans.json');
   const { id } = req.params;
   

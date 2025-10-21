@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import ConfirmPlan from './ConfirmPlan';
 import AdminCompaniesPage from './admin/AdminCompaniesPage';
-import AdminPlansPage from './admin/AdminPlansPage';
 import AdminSubmissionsPage from './admin/AdminSubmissionsPage';
 import AdminUserDataPage from './admin/AdminUserDataPage';
+import AdminPlansPage from './admin/AdminPlansPage';
 import 'leaflet/dist/leaflet.css';
 import CompaniesPage from './CompaniesPage';
 import RequestQuotePage from './RequestQuotePage';
@@ -26,6 +26,7 @@ import LandPage from './pages/LandPage';
 import ConstructionPage from './pages/ConstructionPage';
 import ScrollToTop from './ScrollToTop';
 import { apiUrl } from './api';
+// ...existing code...
 
 // Main projects array for carousel and other usage
 
@@ -229,9 +230,9 @@ function App() {
             <Route path="/join" element={<JoinUsPage />} />
             <Route path="/confirm-plan" element={<ConfirmPlan />} />
             <Route path="/admin/companies" element={<AdminCompaniesPage onLogout={() => { /* navigation fallback if needed */ }} />} />
-            <Route path="/admin/plans" element={<AdminPlansPage />} />
             <Route path="/admin/submissions" element={<AdminSubmissionsPage />} />
             <Route path="/admin/user-data" element={<AdminUserDataPage />} />
+            <Route path="/admin/plans" element={<AdminPlansPage />} />
           </Routes>
           {/* Soil Test Modal for Fertilizer Plan - only rendered in App */}
           {showSoilTestModal && (

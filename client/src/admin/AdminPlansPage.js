@@ -2,55 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { apiUrl } from '../api';
 import '../App.css';
 
-export default function AdminPlansPage() {
+function AdminPlansPage() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [formData, setFormData] = useState({
+    id: '',
     name: '',
     price: '',
     duration: 'Monthly',
-    features: '',
-    color: '#4CAF50',
-    isPopular: false
+    description: '',
+    features: [],
+    popular: false
   });
-
-  // Password protection
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
-  const ADMIN_PASSWORD = 'ullavar2025';
-
-  function handlePasswordSubmit(e) {
-    e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-    } else {
-      alert('Incorrect password!');
-    }
-  }
+  const [featureInput, setFeatureInput] = useState('');
 
   useEffect(() => {
-    if (isAuthenticated) {
-      loadPlans();
-    }
-  }, [isAuthenticated]);
+    loadPlans();
+  }, []);
 
-  const loadPlans = () => {
+  const loadPlans = async () => {
     setLoading(true);
-    fetch(apiUrl('/api/plans'), {
-      headers: { 'Accept': 'application/json' }
-    })
-      .then(r => r.json())
-      .then(data => {
-        setPlans(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Failed to load plans');
-        setLoading(false);
-      });
+    try {
+      const res = await fetch(apiUrl('/api/plans'));
+      if (!res.ok) throw new Error('Failed to load plans');
+      const data = await res.json();
+      setPlans(data);
+    } catch (error) {
+      console.error('Error loading plans:', error);
+      alert('Failed to load plans');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -61,219 +45,161 @@ export default function AdminPlansPage() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const addFeature = () => {
+    if (featureInput.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        features: [...prev.features, featureInput.trim()]
+      }));
+      setFeatureInput('');
+    }
+  };
+
+  const removeFeature = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const planData = {
-      name: formData.name,
-      price: formData.price,
-      duration: formData.duration,
-      features: formData.features.split('\n').filter(f => f.trim()),
-      color: formData.color,
-      isPopular: formData.isPopular
-    };
+    setLoading(true);
 
-    const url = editingPlan 
-      ? apiUrl(`/api/plans/${editingPlan.id}`)
-      : apiUrl('/api/plans');
-    
-    const method = editingPlan ? 'PUT' : 'POST';
-
-    fetch(url, {
-      method,
-      headers: { 
-        'Content-Type': 'application/json',
-        'x-admin-key': ADMIN_PASSWORD
-      },
-      body: JSON.stringify(planData)
-    })
-      .then(r => {
-        if (!r.ok) throw new Error('Authentication failed');
-        return r.json();
-      })
-      .then(() => {
-        alert(editingPlan ? 'Plan updated!' : 'Plan created!');
-        setShowForm(false);
-        setEditingPlan(null);
-        setFormData({ name: '', price: '', duration: 'Monthly', features: '', color: '#4CAF50', isPopular: false });
-        loadPlans();
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Failed to save plan: ' + err.message);
+    try {
+      const url = editingPlan 
+        ? apiUrl(`/api/plans/${editingPlan.id}`)
+        : apiUrl('/api/plans');
+      
+      const method = editingPlan ? 'PUT' : 'POST';
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       });
+
+      if (!res.ok) throw new Error('Failed to save plan');
+      
+      alert(editingPlan ? 'Plan updated successfully!' : 'Plan created successfully!');
+      resetForm();
+      loadPlans();
+    } catch (error) {
+      console.error('Error saving plan:', error);
+      alert('Failed to save plan');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = (plan) => {
     setEditingPlan(plan);
     setFormData({
+      id: plan.id,
       name: plan.name,
       price: plan.price,
       duration: plan.duration,
-      features: plan.features.join('\n'),
-      color: plan.color,
-      isPopular: plan.isPopular
+      description: plan.description || '',
+      features: plan.features || [],
+      popular: plan.popular || false
     });
     setShowForm(true);
   };
 
-  const handleDelete = (planId) => {
+  const handleDelete = async (planId) => {
     if (!window.confirm('Are you sure you want to delete this plan?')) return;
 
-    fetch(apiUrl(`/api/plans/${planId}`), {
-      method: 'DELETE',
-      headers: { 
-        'x-admin-key': ADMIN_PASSWORD
-      }
-    })
-      .then(r => {
-        if (!r.ok) throw new Error('Authentication failed');
-        return r.json();
-      })
-      .then(() => {
-        alert('Plan deleted!');
-        loadPlans();
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Failed to delete plan: ' + err.message);
+    setLoading(true);
+    try {
+      const res = await fetch(apiUrl(`/api/plans/${planId}`), {
+        method: 'DELETE'
       });
+
+      if (!res.ok) throw new Error('Failed to delete plan');
+      
+      alert('Plan deleted successfully!');
+      loadPlans();
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      alert('Failed to delete plan');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCancel = () => {
-    setShowForm(false);
+  const resetForm = () => {
+    setFormData({
+      id: '',
+      name: '',
+      price: '',
+      duration: 'Monthly',
+      description: '',
+      features: [],
+      popular: false
+    });
+    setFeatureInput('');
     setEditingPlan(null);
-    setFormData({ name: '', price: '', duration: 'Monthly', features: '', color: '#4CAF50', isPopular: false });
+    setShowForm(false);
   };
-
-  // Show password form if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      }}>
-        <div style={{
-          background: 'white',
-          padding: '3em',
-          borderRadius: 16,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          maxWidth: 400,
-          width: '100%'
-        }}>
-          <h2 style={{ 
-            color: '#388e3c', 
-            marginBottom: '1.5em',
-            textAlign: 'center',
-            fontSize: '1.8em'
-          }}>
-            🔒 Admin Access
-          </h2>
-          <p style={{ 
-            textAlign: 'center', 
-            color: '#666', 
-            marginBottom: '2em' 
-          }}>
-            Enter password to manage AMC plans
-          </p>
-          <form onSubmit={handlePasswordSubmit}>
-            <input
-              type="password"
-              placeholder="Enter admin password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '14px',
-                border: '2px solid #ddd',
-                borderRadius: 8,
-                fontSize: '1em',
-                marginBottom: '1.5em',
-                boxSizing: 'border-box',
-                transition: 'border-color 0.3s'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#388e3c'}
-              onBlur={(e) => e.target.style.borderColor = '#ddd'}
-              autoFocus
-            />
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                background: '#388e3c',
-                color: 'white',
-                border: 'none',
-                padding: '14px',
-                borderRadius: 8,
-                fontSize: '1em',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                transition: 'background 0.3s'
-              }}
-              onMouseOver={(e) => e.target.style.background = '#2e7d32'}
-              onMouseOut={(e) => e.target.style.background = '#388e3c'}
-            >
-              🔓 Unlock
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ maxWidth: 1200, margin: '2em auto', padding: '2em' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2em' }}>
         <h1 style={{ color: '#388e3c', margin: 0 }}>📋 Manage AMC Plans</h1>
         <button 
-          onClick={() => setShowForm(true)}
+          onClick={() => setShowForm(!showForm)}
           style={{
-            background: '#388e3c',
+            background: showForm ? '#666' : '#388e3c',
             color: 'white',
             border: 'none',
             padding: '12px 24px',
-            borderRadius: 8,
+            borderRadius: '8px',
             cursor: 'pointer',
-            fontWeight: 'bold',
-            fontSize: '1em'
+            fontSize: '1rem',
+            fontWeight: 'bold'
           }}
         >
-          + Add New Plan
+          {showForm ? 'Cancel' : '+ Add New Plan'}
         </button>
       </div>
 
       {showForm && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: 'rgba(0,0,0,0.6)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          padding: 20
+          background: 'white',
+          padding: '2em',
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          marginBottom: '2em'
         }}>
-          <div style={{
-            background: 'white',
-            padding: '2em',
-            borderRadius: 16,
-            maxWidth: 600,
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto'
-          }}>
-            <h2 style={{ color: '#388e3c', marginBottom: '1.5em' }}>
-              {editingPlan ? 'Edit Plan' : 'Create New Plan'}
-            </h2>
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: '1em' }}>
-                <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 600 }}>
+          <h2 style={{ color: '#388e3c', marginBottom: '1.5em' }}>
+            {editingPlan ? 'Edit Plan' : 'Create New Plan'}
+          </h2>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5em', marginBottom: '1.5em' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 'bold', color: '#333' }}>
+                  Plan ID *
+                </label>
+                <input
+                  type="text"
+                  name="id"
+                  value={formData.id}
+                  onChange={handleInputChange}
+                  disabled={!!editingPlan}
+                  placeholder="e.g., basic, standard, premium"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #ddd',
+                    borderRadius: '6px',
+                    fontSize: '1rem',
+                    backgroundColor: editingPlan ? '#f5f5f5' : 'white'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 'bold', color: '#333' }}>
                   Plan Name *
                 </label>
                 <input
@@ -281,265 +207,306 @@ export default function AdminPlansPage() {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  required
                   placeholder="e.g., Basic Plan"
+                  required
                   style={{
                     width: '100%',
-                    padding: '12px',
+                    padding: '10px',
                     border: '2px solid #ddd',
-                    borderRadius: 8,
-                    fontSize: '1em',
-                    boxSizing: 'border-box'
+                    borderRadius: '6px',
+                    fontSize: '1rem'
                   }}
                 />
               </div>
+            </div>
 
-              <div style={{ display: 'flex', gap: '1em', marginBottom: '1em' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 600 }}>
-                    Price (₹) *
-                  </label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="5000"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #ddd',
-                      borderRadius: 8,
-                      fontSize: '1em',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 600 }}>
-                    Duration
-                  </label>
-                  <select
-                    name="duration"
-                    value={formData.duration}
-                    onChange={handleInputChange}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #ddd',
-                      borderRadius: 8,
-                      fontSize: '1em',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    <option value="Monthly">Monthly</option>
-                    <option value="Quarterly">Quarterly</option>
-                    <option value="Yearly">Yearly</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '1em' }}>
-                <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 600 }}>
-                  Color Theme
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5em', marginBottom: '1.5em' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 'bold', color: '#333' }}>
+                  Price (₹) *
                 </label>
                 <input
-                  type="color"
-                  name="color"
-                  value={formData.color}
+                  type="number"
+                  name="price"
+                  value={formData.price}
                   onChange={handleInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '2px solid #ddd',
-                    borderRadius: 8,
-                    height: 50,
-                    cursor: 'pointer'
-                  }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '1em' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5em', fontWeight: 600 }}>
-                  <input
-                    type="checkbox"
-                    name="isPopular"
-                    checked={formData.isPopular}
-                    onChange={handleInputChange}
-                    style={{ width: 20, height: 20, cursor: 'pointer' }}
-                  />
-                  Mark as Popular Plan
-                </label>
-              </div>
-
-              <div style={{ marginBottom: '1.5em' }}>
-                <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 600 }}>
-                  Features (one per line) *
-                </label>
-                <textarea
-                  name="features"
-                  value={formData.features}
-                  onChange={handleInputChange}
+                  placeholder="5000"
                   required
-                  rows="6"
-                  placeholder="Monthly farm visit&#10;Basic irrigation check&#10;Pest monitoring"
                   style={{
                     width: '100%',
-                    padding: '12px',
+                    padding: '10px',
                     border: '2px solid #ddd',
-                    borderRadius: 8,
-                    fontSize: '1em',
-                    fontFamily: 'inherit',
-                    resize: 'vertical',
-                    boxSizing: 'border-box'
+                    borderRadius: '6px',
+                    fontSize: '1rem'
                   }}
                 />
-                <small style={{ color: '#666' }}>Enter each feature on a new line</small>
               </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 'bold', color: '#333' }}>
+                  Duration
+                </label>
+                <select
+                  name="duration"
+                  value={formData.duration}
+                  onChange={handleInputChange}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #ddd',
+                    borderRadius: '6px',
+                    fontSize: '1rem'
+                  }}
+                >
+                  <option value="Monthly">Monthly</option>
+                  <option value="Quarterly">Quarterly</option>
+                  <option value="Yearly">Yearly</option>
+                </select>
+              </div>
+            </div>
 
-              <div style={{ display: 'flex', gap: '1em' }}>
-                <button
-                  type="submit"
+            <div style={{ marginBottom: '1.5em' }}>
+              <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 'bold', color: '#333' }}>
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Brief description of the plan"
+                rows="2"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '2px solid #ddd',
+                  borderRadius: '6px',
+                  fontSize: '1rem',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1.5em' }}>
+              <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 'bold', color: '#333' }}>
+                Features
+              </label>
+              <div style={{ display: 'flex', gap: '0.5em', marginBottom: '1em' }}>
+                <input
+                  type="text"
+                  value={featureInput}
+                  onChange={(e) => setFeatureInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                  placeholder="Add a feature and press Enter"
                   style={{
                     flex: 1,
+                    padding: '10px',
+                    border: '2px solid #ddd',
+                    borderRadius: '6px',
+                    fontSize: '1rem'
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={addFeature}
+                  style={{
                     background: '#388e3c',
                     color: 'white',
                     border: 'none',
-                    padding: '14px',
-                    borderRadius: 8,
+                    padding: '10px 20px',
+                    borderRadius: '6px',
                     cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '1em'
+                    fontWeight: 'bold'
                   }}
                 >
-                  {editingPlan ? 'Update Plan' : 'Create Plan'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  style={{
-                    flex: 1,
-                    background: '#f5f5f5',
-                    color: '#666',
-                    border: '2px solid #ddd',
-                    padding: '14px',
-                    borderRadius: 8,
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '1em'
-                  }}
-                >
-                  Cancel
+                  Add
                 </button>
               </div>
-            </form>
-          </div>
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                {formData.features.map((feature, index) => (
+                  <li key={index} style={{
+                    background: '#f5f5f5',
+                    padding: '10px',
+                    marginBottom: '0.5em',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <span>✓ {feature}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeFeature(index)}
+                      style={{
+                        background: '#ef5350',
+                        color: 'white',
+                        border: 'none',
+                        padding: '5px 10px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div style={{ marginBottom: '1.5em' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5em', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  name="popular"
+                  checked={formData.popular}
+                  onChange={handleInputChange}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                />
+                <span style={{ fontWeight: 'bold', color: '#333' }}>
+                  Mark as Popular (Featured Badge)
+                </span>
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1em' }}>
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  flex: 1,
+                  background: loading ? '#ccc' : '#388e3c',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                {loading ? 'Saving...' : (editingPlan ? 'Update Plan' : 'Create Plan')}
+              </button>
+              <button
+                type="button"
+                onClick={resetForm}
+                style={{
+                  flex: 1,
+                  background: '#666',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '3em', color: '#666' }}>
-          Loading plans...
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2em' }}>
-          {plans.map(plan => (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2em' }}>
+        {loading && plans.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3em', color: '#666' }}>
+            Loading plans...
+          </div>
+        ) : plans.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3em', color: '#666' }}>
+            No plans available. Create your first plan!
+          </div>
+        ) : (
+          plans.map(plan => (
             <div
               key={plan.id}
               style={{
                 background: 'white',
-                border: `3px solid ${plan.color}`,
-                borderRadius: 16,
+                borderRadius: '12px',
                 padding: '2em',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                 position: 'relative',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                border: plan.popular ? '3px solid #388e3c' : '1px solid #ddd'
               }}
             >
-              {plan.isPopular && (
+              {plan.popular && (
                 <div style={{
                   position: 'absolute',
-                  top: -15,
-                  right: 20,
-                  background: '#FF9800',
+                  top: '-12px',
+                  right: '20px',
+                  background: '#388e3c',
                   color: 'white',
                   padding: '5px 15px',
-                  borderRadius: 20,
-                  fontSize: '0.85em',
+                  borderRadius: '20px',
+                  fontSize: '0.85rem',
                   fontWeight: 'bold'
                 }}>
                   ⭐ Popular
                 </div>
               )}
 
-              <h3 style={{ color: plan.color, fontSize: '1.5em', marginBottom: '0.5em' }}>
+              <h3 style={{ color: '#388e3c', fontSize: '1.5em', marginBottom: '0.5em' }}>
                 {plan.name}
               </h3>
-              <div style={{ fontSize: '2em', fontWeight: 'bold', color: '#333', marginBottom: '0.5em' }}>
-                ₹{plan.price}
-                <span style={{ fontSize: '0.5em', color: '#666' }}>/{plan.duration}</span>
+              <p style={{ color: '#666', fontSize: '0.95em', marginBottom: '1em', minHeight: '40px' }}>
+                {plan.description}
+              </p>
+              <div style={{ fontSize: '2em', fontWeight: 'bold', color: '#388e3c', marginBottom: '1em' }}>
+                ₹{parseInt(plan.price).toLocaleString()}
+                <span style={{ fontSize: '0.5em', fontWeight: 'normal', color: '#666' }}>
+                  /{plan.duration}
+                </span>
               </div>
 
-              <ul style={{ listStyle: 'none', padding: 0, margin: '1.5em 0' }}>
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} style={{ padding: '0.5em 0', color: '#555', display: 'flex', gap: '0.5em' }}>
-                    <span style={{ color: plan.color }}>✓</span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
+              <div style={{ marginBottom: '1.5em' }}>
+                <strong style={{ color: '#333', display: 'block', marginBottom: '0.5em' }}>Features:</strong>
+                <ul style={{ listStyle: 'none', padding: 0 }}>
+                  {plan.features && plan.features.map((feature, index) => (
+                    <li key={index} style={{ padding: '0.3em 0', color: '#555' }}>
+                      ✓ {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-              <div style={{ display: 'flex', gap: '1em', marginTop: '1.5em' }}>
+              <div style={{ display: 'flex', gap: '0.5em' }}>
                 <button
                   onClick={() => handleEdit(plan)}
                   style={{
                     flex: 1,
-                    background: plan.color,
+                    background: '#2196F3',
                     color: 'white',
                     border: 'none',
                     padding: '10px',
-                    borderRadius: 8,
+                    borderRadius: '6px',
                     cursor: 'pointer',
                     fontWeight: 'bold'
                   }}
                 >
-                  ✏️ Edit
+                  Edit
                 </button>
                 <button
                   onClick={() => handleDelete(plan.id)}
                   style={{
                     flex: 1,
-                    background: '#f44336',
+                    background: '#ef5350',
                     color: 'white',
                     border: 'none',
                     padding: '10px',
-                    borderRadius: 8,
+                    borderRadius: '6px',
                     cursor: 'pointer',
                     fontWeight: 'bold'
                   }}
                 >
-                  🗑️ Delete
+                  Delete
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-
-      {!loading && plans.length === 0 && (
-        <div style={{
-          textAlign: 'center',
-          padding: '4em',
-          color: '#666',
-          background: '#f9f9f9',
-          borderRadius: 16,
-          border: '2px dashed #ddd'
-        }}>
-          <div style={{ fontSize: '3em', marginBottom: '0.5em' }}>📋</div>
-          <h3>No Plans Yet</h3>
-          <p>Click "Add New Plan" to create your first AMC plan</p>
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }
+
+export default AdminPlansPage;

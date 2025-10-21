@@ -17,7 +17,6 @@ function ManageFarmPage(props) {
   const [activeTab, setActiveTab] = useState('monthly');
   const [plans, setPlans] = useState([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
-  
   // All modal state and handlers come from props
   const {
     showProjectForm,
@@ -30,22 +29,25 @@ function ManageFarmPage(props) {
     isSubmitting
   } = props;
 
+  // Load plans from backend
   useEffect(() => {
-    // Load plans from API
-    setLoadingPlans(true);
-    fetch(apiUrl('/api/plans'), {
-      headers: { 'Accept': 'application/json' }
-    })
-      .then(r => r.json())
-      .then(data => {
-        setPlans(data);
-        setLoadingPlans(false);
-      })
-      .catch(err => {
-        console.error('Failed to load plans:', err);
-        setLoadingPlans(false);
-      });
+    loadPlans();
   }, []);
+
+  const loadPlans = async () => {
+    setLoadingPlans(true);
+    try {
+      const res = await fetch(apiUrl('/api/plans'));
+      if (res.ok) {
+        const data = await res.json();
+        setPlans(data);
+      }
+    } catch (error) {
+      console.error('Error loading plans:', error);
+    } finally {
+      setLoadingPlans(false);
+    }
+  };
   
   return (
     <div className="manage-farm-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -99,55 +101,47 @@ function ManageFarmPage(props) {
             <div className="tab-pane">
               <h2>Monthly AMC (Annual Maintenance Contract)</h2>
               <p>Our structured monthly maintenance plans keep your farm in optimal condition year-round.</p>
-              
               {loadingPlans ? (
                 <div style={{ textAlign: 'center', padding: '3em', color: '#666' }}>
                   Loading plans...
                 </div>
+              ) : plans.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3em', color: '#666' }}>
+                  <p>No plans available at the moment.</p>
+                  <p style={{ fontSize: '0.9em', marginTop: '1em' }}>Please check back later or contact us directly.</p>
+                </div>
               ) : (
                 <div className="plan-cards">
-                  {plans.map(plan => (
-                    <div 
-                      key={plan.id} 
-                      className={`plan-card ${plan.isPopular ? 'featured' : ''}`}
-                      style={{ borderColor: plan.color }}
-                    >
-                      {plan.isPopular && <div className="featured-badge">Popular</div>}
-                      <h3 style={{ color: plan.color }}>{plan.name}</h3>
-                      <div style={{ 
-                        fontSize: '2em', 
-                        fontWeight: 'bold', 
-                        color: plan.color, 
-                        margin: '0.5em 0' 
-                      }}>
-                        ₹{plan.price}
-                        <span style={{ fontSize: '0.5em', color: '#666' }}>/{plan.duration}</span>
-                      </div>
+                  {plans.map((plan) => (
+                    <div key={plan.id} className={`plan-card ${plan.popular ? 'featured' : ''}`}>
+                      {plan.popular && <div className="featured-badge">Popular</div>}
+                      <h3>{plan.name}</h3>
+                      {plan.description && (
+                        <p style={{ fontSize: '0.9em', color: '#666', marginBottom: '1em' }}>
+                          {plan.description}
+                        </p>
+                      )}
+                      {plan.price && (
+                        <div style={{ fontSize: '1.8em', fontWeight: 'bold', color: '#388e3c', marginBottom: '0.5em' }}>
+                          ₹{parseInt(plan.price).toLocaleString()}
+                          <span style={{ fontSize: '0.5em', fontWeight: 'normal', color: '#666' }}>
+                            /{plan.duration}
+                          </span>
+                        </div>
+                      )}
                       <ul>
-                        {plan.features.map((feature, idx) => (
-                          <li key={idx}>{feature}</li>
+                        {plan.features && plan.features.map((feature, index) => (
+                          <li key={index}>{feature}</li>
                         ))}
                       </ul>
                       <button 
                         className="btn btn-primary" 
-                        style={{ background: plan.color, borderColor: plan.color }}
-                        onClick={() => navigate(`/confirm-plan?type=${plan.id}&name=${encodeURIComponent(plan.name)}&price=${plan.price}`)}
+                        onClick={() => navigate(`/confirm-plan?type=${plan.id}`)}
                       >
                         Select Plan
                       </button>
                     </div>
                   ))}
-                  
-                  {plans.length === 0 && (
-                    <div style={{ 
-                      textAlign: 'center', 
-                      padding: '3em', 
-                      gridColumn: '1 / -1',
-                      color: '#666' 
-                    }}>
-                      <p>No plans available yet. Please contact us for custom plans.</p>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
