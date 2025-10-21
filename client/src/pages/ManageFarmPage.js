@@ -145,7 +145,7 @@ function ManageFarmPage(props) {
               <p>Maintain healthy growth and protect your crops from pests.</p>
               <div className="service-details">
                 <div className="service-image">
-                  <img src="https://cropgenetechnology.com/shop/black-killer-powerful-contact-insecticide-for-maximum-pest-control/" alt="Pruning & Pest Control" />
+                  <img src="https://naturescompanionlandscaping.com/wp-content/uploads/2024/05/General-Landscape-Maintenance.jpg" alt="Pruning & Pest Control" />
                 </div>
                 <div className="service-text">
                   <h3>Expert Pruning Services</h3>
