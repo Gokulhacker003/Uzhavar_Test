@@ -26,7 +26,6 @@ import LandPage from './pages/LandPage';
 import ConstructionPage from './pages/ConstructionPage';
 import ScrollToTop from './ScrollToTop';
 import { apiUrl } from './api';
-// ...existing code...
 
 // Main projects array for carousel and other usage
 
