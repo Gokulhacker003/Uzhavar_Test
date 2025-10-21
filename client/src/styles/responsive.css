@@ -129,7 +129,7 @@
   
   /* Place hero text on a subtle card to ensure contrast on video */
   .hero-content {
-    background: rgba(255,255,255,0.85);
+    background: rgba(255, 255, 255, 0.332);
     backdrop-filter: saturate(1.2) blur(2px);
     border-radius: 12px;
     padding: 14px 16px;

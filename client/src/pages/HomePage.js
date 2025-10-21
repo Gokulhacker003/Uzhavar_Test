@@ -1,5 +1,3 @@
-import React, { useState, useEffect } from 'react';
-import { getHello } from '../api';
 import 'leaflet/dist/leaflet.css';
 import { Link } from 'react-router-dom';
 import { FaLeaf,FaImage, FaMapMarkerAlt, FaShoppingCart } from 'react-icons/fa';
@@ -16,10 +14,6 @@ import projects from '../data/projects';
 
 
 function HomePage({ currentSlide, onBookProject }) {
-  const [backendMessage, setBackendMessage] = useState('');
-  useEffect(() => {
-    getHello().then(data => setBackendMessage(data.message)).catch(() => setBackendMessage('Backend not reachable'));
-  }, []);
 
   return (
     <div className="home-page">
@@ -28,7 +22,6 @@ function HomePage({ currentSlide, onBookProject }) {
           <h1>Manage Your Farm Like a Pro. From Soil to Sale.</h1>
           <p style={{ color: '#388e3c', fontWeight: 'bold' }}>AMC, planting, irrigation, fencing, inputs, tank work, harvesting, buyer connect – all in one app. With photo proof.</p>
           <div style={{marginBottom: '1em', color: 'green', fontWeight: 'bold'}}>
-            Backend says: {backendMessage}
           </div>
           <div className="hero-cta">
             <Link to="/manage-farm" className="btn btn-primary"><GiFarmTractor /> Start Managing My Farm</Link>
