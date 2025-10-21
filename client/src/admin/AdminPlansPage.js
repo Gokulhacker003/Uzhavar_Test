@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiUrl } from '../api';
+import { getAuthHeaders, handleAuthError } from './authHelper';
 import '../App.css';
 
 export default function AdminPlansPage() {
@@ -65,10 +66,16 @@ export default function AdminPlansPage() {
 
     fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(planData)
     })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) {
+          handleAuthError(r);
+          throw new Error('Request failed');
+        }
+        return r.json();
+      })
       .then(() => {
         alert(editingPlan ? 'Plan updated!' : 'Plan created!');
         setShowForm(false);
@@ -99,9 +106,16 @@ export default function AdminPlansPage() {
     if (!window.confirm('Are you sure you want to delete this plan?')) return;
 
     fetch(apiUrl(`/api/plans/${planId}`), {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) {
+          handleAuthError(r);
+          throw new Error('Request failed');
+        }
+        return r.json();
+      })
       .then(() => {
         alert('Plan deleted!');
         loadPlans();
