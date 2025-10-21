@@ -434,6 +434,168 @@ app.post('/api/send-email', async (req, res) => {
   }
 });
 
+// ==================== PLANS MANAGEMENT API ====================
+
+// Get all plans
+app.get('/api/plans', (req, res) => {
+  const plansPath = path.join(__dirname, 'data', 'plans.json');
+  
+  try {
+    if (fs.existsSync(plansPath)) {
+      const data = fs.readFileSync(plansPath, 'utf8');
+      const plans = JSON.parse(data);
+      res.json(plans);
+    } else {
+      // Return default plans if file doesn't exist
+      const defaultPlans = [
+        {
+          id: '1',
+          name: 'Basic Plan',
+          price: '5000',
+          duration: 'Monthly',
+          features: [
+            'Monthly farm visit',
+            'Basic irrigation check',
+            'Pest monitoring',
+            'Monthly report'
+          ],
+          color: '#2196F3',
+          isPopular: false
+        },
+        {
+          id: '2',
+          name: 'Standard Plan',
+          price: '10000',
+          duration: 'Monthly',
+          features: [
+            'Bi-weekly farm visit',
+            'Full irrigation maintenance',
+            'Pest control application',
+            'Fertilizer application',
+            'Detailed bi-weekly reports'
+          ],
+          color: '#4CAF50',
+          isPopular: true
+        },
+        {
+          id: '3',
+          name: 'Premium Plan',
+          price: '18000',
+          duration: 'Monthly',
+          features: [
+            'Weekly farm visit',
+            'Complete farm management',
+            'Advanced pest management',
+            'Customized fertilizer program',
+            'Weekly detailed reports',
+            'Priority support'
+          ],
+          color: '#FF9800',
+          isPopular: false
+        }
+      ];
+      res.json(defaultPlans);
+    }
+  } catch (error) {
+    console.error('Error reading plans:', error);
+    res.status(500).json({ error: 'Failed to read plans' });
+  }
+});
+
+// Create new plan
+app.post('/api/plans', (req, res) => {
+  const plansPath = path.join(__dirname, 'data', 'plans.json');
+  
+  try {
+    let plans = [];
+    if (fs.existsSync(plansPath)) {
+      const data = fs.readFileSync(plansPath, 'utf8');
+      plans = JSON.parse(data);
+    }
+    
+    const newPlan = {
+      id: Date.now().toString(),
+      name: req.body.name,
+      price: req.body.price,
+      duration: req.body.duration || 'Monthly',
+      features: req.body.features || [],
+      color: req.body.color || '#4CAF50',
+      isPopular: req.body.isPopular || false
+    };
+    
+    plans.push(newPlan);
+    
+    // Ensure data directory exists
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
+    fs.writeFileSync(plansPath, JSON.stringify(plans, null, 2));
+    res.json(newPlan);
+  } catch (error) {
+    console.error('Error creating plan:', error);
+    res.status(500).json({ error: 'Failed to create plan', details: error.message });
+  }
+});
+
+// Update plan
+app.put('/api/plans/:id', (req, res) => {
+  const plansPath = path.join(__dirname, 'data', 'plans.json');
+  const { id } = req.params;
+  
+  try {
+    if (fs.existsSync(plansPath)) {
+      const data = fs.readFileSync(plansPath, 'utf8');
+      let plans = JSON.parse(data);
+      
+      const index = plans.findIndex(p => p.id === id);
+      if (index !== -1) {
+        plans[index] = {
+          ...plans[index],
+          name: req.body.name,
+          price: req.body.price,
+          duration: req.body.duration || 'Monthly',
+          features: req.body.features || [],
+          color: req.body.color || '#4CAF50',
+          isPopular: req.body.isPopular || false
+        };
+        fs.writeFileSync(plansPath, JSON.stringify(plans, null, 2));
+        res.json(plans[index]);
+      } else {
+        res.status(404).json({ error: 'Plan not found' });
+      }
+    } else {
+      res.status(404).json({ error: 'Plans file not found' });
+    }
+  } catch (error) {
+    console.error('Error updating plan:', error);
+    res.status(500).json({ error: 'Failed to update plan', details: error.message });
+  }
+});
+
+// Delete plan
+app.delete('/api/plans/:id', (req, res) => {
+  const plansPath = path.join(__dirname, 'data', 'plans.json');
+  const { id } = req.params;
+  
+  try {
+    if (fs.existsSync(plansPath)) {
+      const data = fs.readFileSync(plansPath, 'utf8');
+      let plans = JSON.parse(data);
+      
+      plans = plans.filter(p => p.id !== id);
+      fs.writeFileSync(plansPath, JSON.stringify(plans, null, 2));
+      res.json({ message: 'Plan deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Plans file not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting plan:', error);
+    res.status(500).json({ error: 'Failed to delete plan' });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server listening on port ${PORT}`);
 });

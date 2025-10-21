@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import { Link } from 'react-router-dom';
@@ -10,10 +10,14 @@ import {
   GiPlantRoots,
 } from 'react-icons/gi';
 import { GiWoodenFence } from 'react-icons/gi';
+import { apiUrl } from '../api';
 
 function ManageFarmPage(props) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('monthly');
+  const [plans, setPlans] = useState([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
+  
   // All modal state and handlers come from props
   const {
     showProjectForm,
@@ -22,8 +26,26 @@ function ManageFarmPage(props) {
     handleProjectInput,
     handleProjectSubmit,
     projectSubmitted,
-    onOpenSoilTestModal
+    onOpenSoilTestModal,
+    isSubmitting
   } = props;
+
+  useEffect(() => {
+    // Load plans from API
+    setLoadingPlans(true);
+    fetch(apiUrl('/api/plans'), {
+      headers: { 'Accept': 'application/json' }
+    })
+      .then(r => r.json())
+      .then(data => {
+        setPlans(data);
+        setLoadingPlans(false);
+      })
+      .catch(err => {
+        console.error('Failed to load plans:', err);
+        setLoadingPlans(false);
+      });
+  }, []);
   
   return (
     <div className="manage-farm-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -77,42 +99,57 @@ function ManageFarmPage(props) {
             <div className="tab-pane">
               <h2>Monthly AMC (Annual Maintenance Contract)</h2>
               <p>Our structured monthly maintenance plans keep your farm in optimal condition year-round.</p>
-              <div className="plan-cards">
-                <div className="plan-card">
-                  <h3>Basic Plan</h3>
-                  <ul>
-                    <li>Monthly farm visit</li>
-                    <li>Basic irrigation check</li>
-                    <li>Pest monitoring</li>
-                    <li>Monthly report</li>
-                  </ul>
-                  <button className="btn btn-primary" onClick={() => navigate('/confirm-plan?type=basic')}>Select Plan</button>
+              
+              {loadingPlans ? (
+                <div style={{ textAlign: 'center', padding: '3em', color: '#666' }}>
+                  Loading plans...
                 </div>
-                <div className="plan-card featured">
-                  <div className="featured-badge">Popular</div>
-                  <h3>Standard Plan</h3>
-                  <ul>
-                    <li>Bi-weekly farm visit</li>
-                    <li>Full irrigation maintenance</li>
-                    <li>Pest control application</li>
-                    <li>Fertilizer application</li>
-                    <li>Detailed bi-weekly reports</li>
-                  </ul>
-                  <button className="btn btn-primary" onClick={() => navigate('/confirm-plan?type=standard')}>Select Plan</button>
+              ) : (
+                <div className="plan-cards">
+                  {plans.map(plan => (
+                    <div 
+                      key={plan.id} 
+                      className={`plan-card ${plan.isPopular ? 'featured' : ''}`}
+                      style={{ borderColor: plan.color }}
+                    >
+                      {plan.isPopular && <div className="featured-badge">Popular</div>}
+                      <h3 style={{ color: plan.color }}>{plan.name}</h3>
+                      <div style={{ 
+                        fontSize: '2em', 
+                        fontWeight: 'bold', 
+                        color: plan.color, 
+                        margin: '0.5em 0' 
+                      }}>
+                        ₹{plan.price}
+                        <span style={{ fontSize: '0.5em', color: '#666' }}>/{plan.duration}</span>
+                      </div>
+                      <ul>
+                        {plan.features.map((feature, idx) => (
+                          <li key={idx}>{feature}</li>
+                        ))}
+                      </ul>
+                      <button 
+                        className="btn btn-primary" 
+                        style={{ background: plan.color, borderColor: plan.color }}
+                        onClick={() => navigate(`/confirm-plan?type=${plan.id}&name=${encodeURIComponent(plan.name)}&price=${plan.price}`)}
+                      >
+                        Select Plan
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {plans.length === 0 && (
+                    <div style={{ 
+                      textAlign: 'center', 
+                      padding: '3em', 
+                      gridColumn: '1 / -1',
+                      color: '#666' 
+                    }}>
+                      <p>No plans available yet. Please contact us for custom plans.</p>
+                    </div>
+                  )}
                 </div>
-                <div className="plan-card">
-                  <h3>Premium Plan</h3>
-                  <ul>
-                    <li>Weekly farm visit</li>
-                    <li>Complete farm management</li>
-                    <li>Advanced pest management</li>
-                    <li>Customized fertilizer program</li>
-                    <li>Weekly detailed reports</li>
-                    <li>Priority support</li>
-                  </ul>
-                  <button className="btn btn-primary" onClick={() => navigate('/confirm-plan?type=premium')}>Select Plan</button>
-                </div>
-              </div>
+              )}
             </div>
           )}
           
@@ -243,42 +280,96 @@ function ManageFarmPage(props) {
           <Link to="/farm-details" className="btn btn-primary" style={{marginLeft:'1em',background:'#388e3c',color:'#fff'}}>Upload My Farm Details</Link>
         </div>
         {showProjectForm && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <h2>Book a Project</h2>
-              <form onSubmit={handleProjectSubmit} className="project-form">
+          <div className="modal-overlay" onClick={() => setShowProjectForm(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-card">
+                <h2>Book a Project</h2>
+                <form onSubmit={handleProjectSubmit} className="project-form">
                 <div className="form-group">
-                  <label>Name</label>
-                  <input type="text" name="name" value={projectForm.name} onChange={handleProjectInput} required pattern="^[A-Za-z ]+$" title="Name should contain only letters and spaces" />
+                  <label>Full Name *</label>
+                  <input 
+                    type="text" 
+                    name="name" 
+                    value={projectForm.name} 
+                    onChange={handleProjectInput} 
+                    placeholder="Enter your full name"
+                    required 
+                    pattern="^[A-Za-z ]+$" 
+                    title="Name should contain only letters and spaces" 
+                  />
                 </div>
                 <div className="form-group">
-                  <label>Phone</label>
-                  <input type="tel" name="phone" value={projectForm.phone} onChange={handleProjectInput} required pattern="^[0-9]{10}$" maxLength="10" title="Enter a valid 10-digit phone number" />
+                  <label>Phone Number *</label>
+                  <input 
+                    type="tel" 
+                    name="phone" 
+                    value={projectForm.phone} 
+                    onChange={handleProjectInput} 
+                    placeholder="10-digit mobile number"
+                    required 
+                    pattern="^[0-9]{10}$" 
+                    maxLength="10" 
+                    title="Enter a valid 10-digit phone number" 
+                  />
                 </div>
                 <div className="form-group">
-                  <label>Email</label>
-                  <input type="email" name="email" value={projectForm.email} onChange={handleProjectInput} required />
+                  <label>Email Address *</label>
+                  <input 
+                    type="email" 
+                    name="email" 
+                    value={projectForm.email} 
+                    onChange={handleProjectInput} 
+                    placeholder="your.email@example.com"
+                    required 
+                  />
                 </div>
                 <div className="form-group">
-                  <label>Project Type</label>
+                  <label>Project Type *</label>
                   <select name="projectType" value={projectForm.projectType} onChange={handleProjectInput} required>
-                    <option value="">Select Type</option>
-                    <option value="Fencing">Fencing</option>
-                    <option value="Drip Irrigation">Drip Irrigation</option>
-                    <option value="Plantation">Plantation</option>
-                    <option value="Land Preparation">Land Preparation</option>
-                    <option value="Other">Other</option>
+                    <option value="">-- Choose Project Type --</option>
+                    <option value="Fencing">🌿 Fencing</option>
+                    <option value="Drip Irrigation">💧 Drip Irrigation</option>
+                    <option value="Plantation">🌱 Plantation</option>
+                    <option value="Land Preparation">🚜 Land Preparation</option>
+                    <option value="Other">📋 Other</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Description</label>
-                  <textarea name="description" value={projectForm.description} onChange={handleProjectInput} rows="3" required maxLength="500" title="Describe your project (max 500 characters)" />
+                  <label>Project Description *</label>
+                  <textarea 
+                    name="description" 
+                    value={projectForm.description} 
+                    onChange={handleProjectInput} 
+                    rows="4" 
+                    placeholder="Tell us about your project requirements, timeline, and any specific details..."
+                    required 
+                    maxLength="500" 
+                    title="Describe your project (max 500 characters)" 
+                  />
                 </div>
                 <div className="form-actions">
-                  <button type="submit" className="btn btn-primary">Submit</button>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowProjectForm(false)}>Cancel</button>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary" 
+                    disabled={isSubmitting}
+                    style={{ 
+                      opacity: isSubmitting ? 0.7 : 1,
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {isSubmitting ? '⏳ Submitting...' : 'Submit Request'}
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    onClick={() => setShowProjectForm(false)}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </form>
+              </div>
             </div>
           </div>
         )}

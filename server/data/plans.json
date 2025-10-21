@@ -1,0 +1,47 @@
+[
+  {
+    "id": "1",
+    "name": "Basic Plan",
+    "price": "5000",
+    "duration": "Monthly",
+    "features": [
+      "Monthly farm visit",
+      "Basic irrigation check",
+      "Pest monitoring",
+      "Monthly report"
+    ],
+    "color": "#2196F3",
+    "isPopular": false
+  },
+  {
+    "id": "2",
+    "name": "Standard Plan",
+    "price": "10000",
+    "duration": "Monthly",
+    "features": [
+      "Bi-weekly farm visit",
+      "Full irrigation maintenance",
+      "Pest control application",
+      "Fertilizer application",
+      "Detailed bi-weekly reports"
+    ],
+    "color": "#4CAF50",
+    "isPopular": true
+  },
+  {
+    "id": "3",
+    "name": "Premium Plan",
+    "price": "18000",
+    "duration": "Monthly",
+    "features": [
+      "Weekly farm visit",
+      "Complete farm management",
+      "Advanced pest management",
+      "Customized fertilizer program",
+      "Weekly detailed reports",
+      "Priority support"
+    ],
+    "color": "#FF9800",
+    "isPopular": false
+  }
+]

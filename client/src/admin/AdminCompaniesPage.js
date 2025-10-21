@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiUrl } from '../api';
+import { apiUrl, imageUrl } from '../api';
 
 export default function AdminCompaniesPage({ onLogout }) {
   const [companies, setCompanies] = useState([]);
@@ -363,7 +363,7 @@ export default function AdminCompaniesPage({ onLogout }) {
                     {/* Company Logo */}
                     {company.logo ? (
                       <img 
-                        src={company.logo} 
+                        src={imageUrl(company.logo)} 
                         alt={`${company.name} logo`} 
                         style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid #ddd' }} 
                       />
@@ -430,7 +430,7 @@ export default function AdminCompaniesPage({ onLogout }) {
                         <div key={idx} style={{ border: '1px solid #dee2e6', borderRadius: 6, padding: '1rem', background: '#f8f9fa' }}>
                           {product.image && (
                             <img 
-                              src={product.image} 
+                              src={imageUrl(product.image)} 
                               alt={product.name} 
                               style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 4, marginBottom: '0.5rem' }} 
                             />

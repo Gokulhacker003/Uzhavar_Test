@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ConfirmPlan from './ConfirmPlan';
 import AdminCompaniesPage from './admin/AdminCompaniesPage';
+import AdminPlansPage from './admin/AdminPlansPage';
 import AdminSubmissionsPage from './admin/AdminSubmissionsPage';
 import AdminUserDataPage from './admin/AdminUserDataPage';
 import 'leaflet/dist/leaflet.css';
@@ -24,6 +25,7 @@ import JoinUsPage from './pages/JoinUsPage';
 import LandPage from './pages/LandPage';
 import ConstructionPage from './pages/ConstructionPage';
 import ScrollToTop from './ScrollToTop';
+import { apiUrl } from './api';
 // ...existing code...
 
 // Main projects array for carousel and other usage
@@ -42,34 +44,44 @@ function App() {
     phone: '',
     email: '',
     projectType: '',
-    details: ''
+    description: ''
   });
   const [projectSubmitted, setProjectSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleProjectInput = (e) => {
     const { name, value } = e.target;
     setProjectForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleProjectSubmit = (e) => {
+  const handleProjectSubmit = async (e) => {
     e.preventDefault();
-    // send to backend
-    postToApi({
-      formType: 'Project Request',
-      name: projectForm.name,
-      email: projectForm.email,
-      phone: projectForm.phone,
-      message: projectForm.details,
-      extra: { projectType: projectForm.projectType }
-    }).then(() => {
+    setIsSubmitting(true);
+    
+    try {
+      // send to backend
+      await postToApi({
+        formType: 'Project Request',
+        name: projectForm.name,
+        email: projectForm.email,
+        phone: projectForm.phone,
+        message: projectForm.description,
+        extra: { projectType: projectForm.projectType }
+      });
+      
       setProjectSubmitted(true);
       setShowProjectForm(false);
-      setProjectForm({ name: '', phone: '', email: '', projectType: '', details: '' });
-      alert('Project request submitted! Our team will contact you soon.');
-    }).catch(err => {
-      console.error(err);
-      alert('Failed to submit. Please try again later.');
-    });
+      setProjectForm({ name: '', phone: '', email: '', projectType: '', description: '' });
+      
+      // Show success message for 3 seconds
+      setTimeout(() => setProjectSubmitted(false), 3000);
+      
+    } catch (err) {
+      console.error('Submit error:', err);
+      alert('Failed to submit. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Soil Test Modal State for Fertilizer Plan
@@ -107,13 +119,24 @@ function App() {
 
   // helper to POST to backend
   const postToApi = async (payload) => {
-    const res = await fetch('/api/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error('Network response was not ok');
-    return res.json();
+    try {
+      const res = await fetch(apiUrl('/api/send-email'), {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Server error: ${res.status} - ${errorText}`);
+      }
+      return res.json();
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
   };
 
   // Remove legacy handleBookProject and setShowProjectModal
@@ -195,6 +218,7 @@ function App() {
                 handleProjectInput={handleProjectInput}
                 handleProjectSubmit={handleProjectSubmit}
                 projectSubmitted={projectSubmitted}
+                isSubmitting={isSubmitting}
               />
             } />
             <Route path="/buy-inputs" element={<BuyInputsPage />} />
@@ -206,6 +230,7 @@ function App() {
             <Route path="/join" element={<JoinUsPage />} />
             <Route path="/confirm-plan" element={<ConfirmPlan />} />
             <Route path="/admin/companies" element={<AdminCompaniesPage onLogout={() => { /* navigation fallback if needed */ }} />} />
+            <Route path="/admin/plans" element={<AdminPlansPage />} />
             <Route path="/admin/submissions" element={<AdminSubmissionsPage />} />
             <Route path="/admin/user-data" element={<AdminUserDataPage />} />
           </Routes>

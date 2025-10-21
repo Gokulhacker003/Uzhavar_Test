@@ -101,7 +101,8 @@ const allowedOrigins = [
 ### Modified Files:
 1. ✅ `client/src/api.js` - Added `imageUrl()` helper
 2. ✅ `client/src/CompaniesPage.js` - Applied `imageUrl()` to all images
-3. ✅ `client/.env.production` - Created with backend URL
+3. ✅ `client/src/admin/AdminCompaniesPage.js` - Applied `imageUrl()` to admin panel images
+4. ✅ `client/.env.production` - Created with backend URL
 
 ### Backend Requirements:
 - Static file serving for `/uploads` folder
