@@ -121,12 +121,9 @@ function ManageFarmPage(props) {
                           {plan.description}
                         </p>
                       )}
-                      {plan.price && (
-                        <div style={{ fontSize: '1.8em', fontWeight: 'bold', color: '#388e3c', marginBottom: '0.5em' }}>
-                          ₹{parseInt(plan.price).toLocaleString()}
-                          <span style={{ fontSize: '0.5em', fontWeight: 'normal', color: '#666' }}>
-                            /{plan.duration}
-                          </span>
+                      {plan.duration && (
+                        <div style={{ fontSize: '1.1em', fontWeight: 700, color: '#388e3c', marginBottom: '0.5em' }}>
+                          Duration: {plan.duration}
                         </div>
                       )}
                       <ul>

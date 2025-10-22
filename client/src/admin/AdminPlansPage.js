@@ -13,7 +13,6 @@ function AdminPlansPage() {
   const [formData, setFormData] = useState({
     id: '',
     name: '',
-    price: '',
     duration: 'Monthly',
     description: '',
     features: [],
@@ -108,7 +107,6 @@ function AdminPlansPage() {
     setFormData({
       id: plan.id,
       name: plan.name,
-      price: plan.price,
       duration: plan.duration,
       description: plan.description || '',
       features: plan.features || [],
@@ -142,7 +140,6 @@ function AdminPlansPage() {
     setFormData({
       id: '',
       name: '',
-      price: '',
       duration: 'Monthly',
       description: '',
       features: [],
@@ -253,27 +250,7 @@ function AdminPlansPage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5em', marginBottom: '1.5em' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 'bold', color: '#333' }}>
-                  Price (₹) *
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  placeholder="5000"
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '2px solid #ddd',
-                    borderRadius: '6px',
-                    fontSize: '1rem'
-                  }}
-                />
-              </div>
+            <div style={{ marginBottom: '1.5em' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5em', fontWeight: 'bold', color: '#333' }}>
                   Duration
@@ -484,11 +461,8 @@ function AdminPlansPage() {
               <p style={{ color: '#666', fontSize: '0.95em', marginBottom: '1em', minHeight: '40px' }}>
                 {plan.description}
               </p>
-              <div style={{ fontSize: '2em', fontWeight: 'bold', color: '#388e3c', marginBottom: '1em' }}>
-                ₹{parseInt(plan.price).toLocaleString()}
-                <span style={{ fontSize: '0.5em', fontWeight: 'normal', color: '#666' }}>
-                  /{plan.duration}
-                </span>
+              <div style={{ fontSize: '1.2em', fontWeight: 'bold', color: '#388e3c', marginBottom: '1em' }}>
+                Duration: {plan.duration}
               </div>
 
               <div style={{ marginBottom: '1.5em' }}>
