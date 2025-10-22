@@ -106,9 +106,41 @@ function ManageFarmPage(props) {
                   Loading plans...
                 </div>
               ) : plans.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '3em', color: '#666' }}>
-                  <p>No plans available at the moment.</p>
-                  <p style={{ fontSize: '0.9em', marginTop: '1em' }}>Please check back later or contact us directly.</p>
+                <div className="plan-cards">
+                  <div className="plan-card">
+                    <h3>Basic Plan</h3>
+                    <ul>
+                      <li>Monthly farm visit</li>
+                      <li>Basic irrigation check</li>
+                      <li>Pest monitoring</li>
+                      <li>Monthly report</li>
+                    </ul>
+                    <button className="btn btn-primary" onClick={() => navigate('/confirm-plan?type=basic')}>Select Plan</button>
+                  </div>
+                  <div className="plan-card featured">
+                    <div className="featured-badge">Popular</div>
+                    <h3>Standard Plan</h3>
+                    <ul>
+                      <li>Bi-weekly farm visit</li>
+                      <li>Full irrigation maintenance</li>
+                      <li>Pest control application</li>
+                      <li>Fertilizer application</li>
+                      <li>Detailed bi-weekly reports</li>
+                    </ul>
+                    <button className="btn btn-primary" onClick={() => navigate('/confirm-plan?type=standard')}>Select Plan</button>
+                  </div>
+                  <div className="plan-card">
+                    <h3>Premium Plan</h3>
+                    <ul>
+                      <li>Weekly farm visit</li>
+                      <li>Complete farm management</li>
+                      <li>Advanced pest management</li>
+                      <li>Customized fertilizer program</li>
+                      <li>Weekly detailed reports</li>
+                      <li>Priority support</li>
+                    </ul>
+                    <button className="btn btn-primary" onClick={() => navigate('/confirm-plan?type=premium')}>Select Plan</button>
+                  </div>
                 </div>
               ) : (
                 <div className="plan-cards">
@@ -116,27 +148,12 @@ function ManageFarmPage(props) {
                     <div key={plan.id} className={`plan-card ${plan.popular ? 'featured' : ''}`}>
                       {plan.popular && <div className="featured-badge">Popular</div>}
                       <h3>{plan.name}</h3>
-                      {plan.description && (
-                        <p style={{ fontSize: '0.9em', color: '#666', marginBottom: '1em' }}>
-                          {plan.description}
-                        </p>
-                      )}
-                      {plan.duration && (
-                        <div style={{ fontSize: '1.1em', fontWeight: 700, color: '#388e3c', marginBottom: '0.5em' }}>
-                          Duration: {plan.duration}
-                        </div>
-                      )}
                       <ul>
                         {plan.features && plan.features.map((feature, index) => (
                           <li key={index}>{feature}</li>
                         ))}
                       </ul>
-                      <button 
-                        className="btn btn-primary" 
-                        onClick={() => navigate(`/confirm-plan?type=${plan.id}`)}
-                      >
-                        Select Plan
-                      </button>
+                      <button className="btn btn-primary" onClick={() => navigate(`/confirm-plan?type=${plan.id}`)}>Select Plan</button>
                     </div>
                   ))}
                 </div>
