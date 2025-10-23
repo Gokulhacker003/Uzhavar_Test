@@ -2,7 +2,6 @@
   {
     "id": "basic",
     "name": "Basic Plan",
-    "price": "5000",
     "duration": "Monthly",
     "features": [
       "Monthly farm visit",
@@ -16,7 +15,6 @@
   {
     "id": "standard",
     "name": "Standard Plan",
-    "price": "10000",
     "duration": "Monthly",
     "features": [
       "Bi-weekly farm visit",
@@ -31,7 +29,6 @@
   {
     "id": "premium",
     "name": "Premium Plan",
-    "price": "20000",
     "duration": "Monthly",
     "features": [
       "Weekly farm visit",

@@ -32,7 +32,7 @@ function AdminPlansPage() {
     loadPlans();
   }, []);
 
-  const loadPlans = async () => {
+  const loadPlans =async () => {
     setLoading(true);
     try {
       const res = await fetch(apiUrl('/api/plans'));
