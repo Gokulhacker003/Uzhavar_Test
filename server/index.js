@@ -404,14 +404,23 @@ app.post('/api/send-email', async (req, res) => {
     // 2) Optionally send real email (if enabled)
     if (String(process.env.SEND_EMAILS).toLowerCase() === 'true') {
       const nodemailer = require('nodemailer');
+      
+      // Use port 587 with STARTTLS for Render compatibility (port 465 is blocked)
+      const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
+      const smtpSecure = smtpPort === 465; // true for 465, false for other ports
+      
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465,
-        secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : true,
+        port: smtpPort,
+        secure: smtpSecure,
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
+        // Add connection timeout and other options
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 10000,
+        socketTimeout: 30000
       });
 
       // Format the email based on form type
@@ -677,7 +686,7 @@ app.get('/health', (req, res) => {
 
 // Keep server awake on Render (pings itself every 10 minutes)
 if (process.env.RENDER) {
-  const RENDER_URL = process.env.RENDER_EXTERNAL_URL || 'https://uzhavar.onrender.com';
+  const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
   setInterval(() => {
     https.get(`${RENDER_URL}/health`, (res) => {
       console.log(`Keep-alive ping: ${res.statusCode}`);
@@ -687,6 +696,12 @@ if (process.env.RENDER) {
   }, 10 * 60 * 1000); // 10 minutes
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+// For local development
+if (process.env.NODE_ENV !== 'production' || process.env.RENDER) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;
