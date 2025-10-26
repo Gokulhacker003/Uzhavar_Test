@@ -7,6 +7,16 @@ export default function CompaniesPage() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [error, setError] = useState(null);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [orderForm, setOrderForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    quantity: 1
+  });
+  const [orderSubmitted, setOrderSubmitted] = useState(false);
 
   const loadCompanies = () => {
     setLoading(true);
@@ -48,6 +58,61 @@ export default function CompaniesPage() {
   useEffect(() => {
     loadCompanies();
   }, []);
+
+  const handleOrderClick = (product, company) => {
+    setSelectedProduct({ ...product, companyName: company.name });
+    setShowOrderModal(true);
+    setOrderSubmitted(false);
+  };
+
+  const handleOrderFormChange = (e) => {
+    const { name, value } = e.target;
+    setOrderForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleOrderSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const orderData = {
+        formType: 'Product Order',
+        name: orderForm.name,
+        phone: orderForm.phone,
+        email: orderForm.email,
+        message: `Order for ${selectedProduct.name} from ${selectedProduct.companyName}`,
+        extra: {
+          'Product Name': selectedProduct.name,
+          'Company': selectedProduct.companyName,
+          'Price': selectedProduct.price ? `₹${selectedProduct.price}` : 'N/A',
+          'Quantity': orderForm.quantity,
+          'Delivery Address': orderForm.address,
+          'Total Amount': selectedProduct.price ? `₹${selectedProduct.price * orderForm.quantity}` : 'N/A'
+        }
+      };
+
+      const response = await fetch(apiUrl('/api/send-email'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (response.ok) {
+        setOrderSubmitted(true);
+        setOrderForm({ name: '', phone: '', email: '', address: '', quantity: 1 });
+        setTimeout(() => {
+          setShowOrderModal(false);
+          setOrderSubmitted(false);
+        }, 3000);
+      } else {
+        alert('Failed to submit order. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      alert('Failed to submit order. Please check your connection and try again.');
+    }
+  };
 
   const renderCompanyCard = (c, fallbackImg) => (
     <div 
@@ -217,11 +282,31 @@ export default function CompaniesPage() {
                     borderRadius: 20, 
                     fontSize: '1.1em', 
                     fontWeight: 'bold',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    marginBottom: '0.8em'
                   }}>
                     ₹{product.price}
                   </div>
                 )}
+                <button
+                  onClick={() => handleOrderClick(product, company)}
+                  style={{
+                    width: '100%',
+                    background: '#2e7d32',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.7em 1.2em',
+                    borderRadius: 8,
+                    fontSize: '1em',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'background 0.3s ease'
+                  }}
+                  onMouseEnter={e => e.target.style.background = '#1b5e20'}
+                  onMouseLeave={e => e.target.style.background = '#2e7d32'}
+                >
+                  🛒 Order Now
+                </button>
               </div>
             ))}
           </div>
@@ -301,6 +386,231 @@ export default function CompaniesPage() {
               <>
                 {renderCompanyCard({ id: 'masala', name: 'Aadhivelan Masala', description: 'Premium spice blends and masala products, crafted for authentic taste and quality. Serving homes and businesses with pure, flavorful masalas.', products: [] }, fallbackMasala)}
                 {renderCompanyCard({ id: 'organics', name: 'Aadhivelan Organics', description: 'Organic farm produce and products, grown and processed with care for health and sustainability. Bringing fresh, chemical-free food to your table.', products: [] }, fallbackOrganics)}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Order Modal */}
+      {showOrderModal && selectedProduct && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            background: 'rgba(0,0,0,0.7)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '2rem'
+          }}
+          onClick={() => !orderSubmitted && setShowOrderModal(false)}
+        >
+          <div 
+            style={{ 
+              maxWidth: 500, 
+              width: '100%',
+              background: 'white',
+              borderRadius: 16,
+              padding: '2rem',
+              position: 'relative',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowOrderModal(false)}
+              style={{
+                position: 'absolute',
+                top: 15,
+                right: 15,
+                background: 'transparent',
+                border: 'none',
+                fontSize: '2rem',
+                cursor: 'pointer',
+                color: '#666',
+                padding: 0,
+                width: 35,
+                height: 35,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ×
+            </button>
+
+            {orderSubmitted ? (
+              <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
+                <h3 style={{ color: '#2e7d32', marginBottom: '0.5rem' }}>Order Submitted!</h3>
+                <p style={{ color: '#666' }}>We'll contact you shortly to confirm your order.</p>
+              </div>
+            ) : (
+              <>
+                <h2 style={{ color: '#2e7d32', marginBottom: '1.5rem', paddingRight: '2rem' }}>
+                  Order: {selectedProduct.name}
+                </h2>
+                
+                <div style={{ 
+                  background: '#f5f5f5', 
+                  padding: '1rem', 
+                  borderRadius: 8, 
+                  marginBottom: '1.5rem' 
+                }}>
+                  <p style={{ margin: '0.5rem 0', color: '#333' }}>
+                    <strong>Company:</strong> {selectedProduct.companyName}
+                  </p>
+                  {selectedProduct.price && (
+                    <p style={{ margin: '0.5rem 0', color: '#2e7d32', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                      Price: ₹{selectedProduct.price}
+                    </p>
+                  )}
+                </div>
+
+                <form onSubmit={handleOrderSubmit}>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#333' }}>
+                      Your Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={orderForm.name}
+                      onChange={handleOrderFormChange}
+                      required
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.7rem', 
+                        borderRadius: 8, 
+                        border: '1px solid #ccc',
+                        fontSize: '1rem'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#333' }}>
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={orderForm.phone}
+                      onChange={handleOrderFormChange}
+                      required
+                      pattern="[0-9]{10}"
+                      maxLength="10"
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.7rem', 
+                        borderRadius: 8, 
+                        border: '1px solid #ccc',
+                        fontSize: '1rem'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#333' }}>
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={orderForm.email}
+                      onChange={handleOrderFormChange}
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.7rem', 
+                        borderRadius: 8, 
+                        border: '1px solid #ccc',
+                        fontSize: '1rem'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#333' }}>
+                      Quantity *
+                    </label>
+                    <input
+                      type="number"
+                      name="quantity"
+                      value={orderForm.quantity}
+                      onChange={handleOrderFormChange}
+                      required
+                      min="1"
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.7rem', 
+                        borderRadius: 8, 
+                        border: '1px solid #ccc',
+                        fontSize: '1rem'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem', color: '#333' }}>
+                      Delivery Address *
+                    </label>
+                    <textarea
+                      name="address"
+                      value={orderForm.address}
+                      onChange={handleOrderFormChange}
+                      required
+                      rows="3"
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.7rem', 
+                        borderRadius: 8, 
+                        border: '1px solid #ccc',
+                        fontSize: '1rem',
+                        resize: 'vertical'
+                      }}
+                    />
+                  </div>
+
+                  {selectedProduct.price && (
+                    <div style={{ 
+                      background: '#e8f5e9', 
+                      padding: '1rem', 
+                      borderRadius: 8, 
+                      marginBottom: '1.5rem',
+                      textAlign: 'center'
+                    }}>
+                      <strong style={{ color: '#2e7d32', fontSize: '1.2rem' }}>
+                        Total: ₹{selectedProduct.price * orderForm.quantity}
+                      </strong>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    style={{
+                      width: '100%',
+                      background: '#2e7d32',
+                      color: 'white',
+                      border: 'none',
+                      padding: '1rem',
+                      borderRadius: 8,
+                      fontSize: '1.1rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      transition: 'background 0.3s ease'
+                    }}
+                    onMouseEnter={e => e.target.style.background = '#1b5e20'}
+                    onMouseLeave={e => e.target.style.background = '#2e7d32'}
+                  >
+                    Place Order
+                  </button>
+                </form>
               </>
             )}
           </div>
