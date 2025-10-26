@@ -27,9 +27,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const allowedOrigins = [
-  'https://uzhavar.vercel.app', // production frontend (NO trailing slash!)
-  'http://localhost:3000',      // CRA dev
-  'http://localhost:3001'       // CRA dev alternate port
+  'https://uzhavar.vercel.app',     // production frontend (NO trailing slash!)
+  'https://uzhavar-backend.vercel.app', // backend itself
+  'http://localhost:3000',          // CRA dev
+  'http://localhost:3001'           // CRA dev alternate port
 ];
 
 app.use(cors({
