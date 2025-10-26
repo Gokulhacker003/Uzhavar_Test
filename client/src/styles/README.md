@@ -1,4 +1,4 @@
-# CSS Organization Guide - Ullavar Connect
+# CSS Organization Guide - Uzhavar Connect
 
 ## 📁 Directory Structure
 
@@ -161,5 +161,5 @@ Never change the order without understanding the cascade implications!
 ---
 
 **Created**: 2025-10-20
-**Project**: Ullavar Connect
+**Project**: Uzhavar Connect
 **Maintained by**: Development Team

@@ -41,7 +41,7 @@ function HomePage({ currentSlide, onBookProject }) {
       <section className="what-we-do-section">
         <div className="section-heading">
             <div className="section-heading-container">
-                <h2><FaLeaf /> We Are Ullavar Connect – What We Do</h2>
+                <h2><FaLeaf /> We Are Uzhavar Connect – What We Do</h2>
                 <p className="tagline">We are not a consultancy. Not just labour. We are your farm's execution team – structured, documented, scheduled.</p>
             </div>
         </div>

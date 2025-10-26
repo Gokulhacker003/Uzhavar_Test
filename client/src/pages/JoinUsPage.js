@@ -172,7 +172,7 @@ export default function JoinUsPage() {
     return (
       <div className="join-us-page">
         <section className="page-header">
-          <h1><FaUserFriends /> Join Ullavar Connect</h1>
+          <h1><FaUserFriends /> Join Uzhavar Connect</h1>
           <p>Choose your registration type to get started</p>
         </section>
         

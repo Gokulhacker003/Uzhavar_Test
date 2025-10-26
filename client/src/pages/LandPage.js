@@ -85,7 +85,7 @@ export default function LandPage() {
   return (
     <div className="land-page">
       <section className="page-header">
-        <h1><MdLandscape /> Buy/Sell Land – Ullavar Bhoomi</h1>
+        <h1><MdLandscape /> Buy/Sell Land – Uzhavar Bhoomi</h1>
       </section>
       <div className="land-form-section" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'70vh'}}>
         <h2 style={{textAlign:'center',marginBottom:'1em'}}>List Your Land for Buy/Sell</h2>

@@ -8,7 +8,7 @@ function BuyInputsPage() {
   return (
     <div className="buy-inputs-page">
       <section className="page-header">
-        <h1><FaShoppingCart /> Buy Agri Inputs – Ullavar Mart</h1>
+        <h1><FaShoppingCart /> Buy Agri Inputs – Uzhavar Mart</h1>
         <div className="phase-badge">Phase 2 – Under Construction</div>
       </section>
       

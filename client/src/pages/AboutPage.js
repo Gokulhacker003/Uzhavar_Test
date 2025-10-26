@@ -10,7 +10,7 @@ function AboutPage() {
         <div className="about-hero-content">
           <h1>Who We Are</h1>
           <div className="about-statement">
-            <p>We are Ullavar Connect – a full-stack, no-nonsense, execution team for farmers.</p>
+            <p>We are Uzhavar Connect – a full-stack, no-nonsense, execution team for farmers.</p>
             <p className="highlight">We've built farms. Not decks.</p>
             <p className="highlight">We don't sell leads. We take responsibility.</p>
           </div>

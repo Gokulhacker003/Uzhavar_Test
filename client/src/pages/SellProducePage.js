@@ -5,7 +5,7 @@ function SellProducePage() {
   return (
     <div className="sell-produce-page">
       <section className="page-header">
-        <h1><MdSell /> Sell My Produce – Ullavar Bazaar</h1>
+        <h1><MdSell /> Sell My Produce – Uzhavar Bazaar</h1>
         <div className="phase-badge">Phase 2 – Under Construction</div>
       </section>
       

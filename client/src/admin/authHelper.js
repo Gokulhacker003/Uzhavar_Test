@@ -1,6 +1,6 @@
 // Authentication helper functions for admin access
 
-const AUTH_KEY = 'ullavar_admin_auth';
+const AUTH_KEY = 'uzhavar_admin_auth';
 
 export const authHelper = {
   // Check if user is authenticated
@@ -29,7 +29,7 @@ export const authHelper = {
   // Login user
   login: (username, password) => {
     // Simple authentication (in production, this should be done server-side)
-    if (username === 'admin' && password === 'ullavar2025') {
+    if (username === 'admin' && password === 'uzhavar2025') {
       const authData = {
         authenticated: true,
         timestamp: Date.now(),

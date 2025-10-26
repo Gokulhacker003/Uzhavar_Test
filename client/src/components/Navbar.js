@@ -10,7 +10,7 @@ const Navbar = () => {
       <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', height: '44px' }}>
         <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5em', fontSize: '1em' }}>
           <GiWheat className="logo-icon" style={{ fontSize: '1.2em' }} />
-          <span className="logo-text" style={{ fontWeight: 700, color: '#388e3c' }}>Ullavar Connect</span>
+          <span className="logo-text" style={{ fontWeight: 700, color: '#388e3c' }}>Uzhavar Connect</span>
         </div>
         
         {/* Burger button - visible only on mobile */}

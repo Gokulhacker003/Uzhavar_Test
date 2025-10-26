@@ -13,7 +13,10 @@ export default function AdminCompaniesPage({ onLogout }) {
   // Simple password protection
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const ADMIN_PASSWORD = 'ullavar2025';
+
+
+// Password for admin access
+const ADMIN_PASSWORD = 'uzhavar2025';
 
   function handlePasswordSubmit(e) {
     e.preventDefault();

@@ -181,7 +181,7 @@ function App() {
           <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '44px' }}>
             <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5em', fontSize: '1em' }}>
               <GiWheat className="logo-icon" style={{ fontSize: '1.2em' }} />
-              <span className="logo-text" style={{ fontWeight: 700, color: '#388e3c' }}>Ullavar Connect</span>
+              <span className="logo-text" style={{ fontWeight: 700, color: '#388e3c' }}>Uzhavar Connect</span>
             </div>
             <div className={`burger ${isMenuOpen ? 'open' : ''}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <div></div>
@@ -287,9 +287,9 @@ function App() {
           )}
         </main>
   <footer className="footer">
-          {/* Row 1 - Ullavar Connect */}
-          <div className="footer-header">
-            <h2>Ullavar Connect</h2>
+          {/* Row 1 - Uzhavar Connect */}
+          <div className="footer-col">
+            <h2>Uzhavar Connect</h2>
             <p>Manage Your Farm Like a Pro. From Soil to Sale.</p>
           </div>
 
@@ -339,7 +339,7 @@ function App() {
 
           {/* Footer Bottom */}
           <div className="footer-bottom">
-            <p>&copy; {new Date().getFullYear()} Ullavar Connect. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Uzhavar Connect. All rights reserved.</p>
             <p>Powered by Netcraft Studio</p>
           </div>
         </footer>
