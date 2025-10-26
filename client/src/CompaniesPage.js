@@ -274,20 +274,6 @@ export default function CompaniesPage() {
                 {product.description && (
                   <p style={{ color: '#666', fontSize: '0.95em', marginBottom: '1em', lineHeight: 1.5 }}>{product.description}</p>
                 )}
-                {product.price && (
-                  <div style={{ 
-                    background: '#388e3c', 
-                    color: 'white', 
-                    padding: '0.5em 1em', 
-                    borderRadius: 20, 
-                    fontSize: '1.1em', 
-                    fontWeight: 'bold',
-                    textAlign: 'center',
-                    marginBottom: '0.8em'
-                  }}>
-                    ₹{product.price}
-                  </div>
-                )}
                 <button
                   onClick={() => handleOrderClick(product, company)}
                   style={{
@@ -466,11 +452,6 @@ export default function CompaniesPage() {
                   <p style={{ margin: '0.5rem 0', color: '#333' }}>
                     <strong>Company:</strong> {selectedProduct.companyName}
                   </p>
-                  {selectedProduct.price && (
-                    <p style={{ margin: '0.5rem 0', color: '#2e7d32', fontSize: '1.2rem', fontWeight: 'bold' }}>
-                      Price: ₹{selectedProduct.price}
-                    </p>
-                  )}
                 </div>
 
                 <form onSubmit={handleOrderSubmit}>
