@@ -2,7 +2,7 @@
   "name": "uzhavar",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://uzhavar.onrender.com",
+  "proxy": "https://uzhavar-backend.vercel.app/",
   "dependencies": {
     "@react-google-maps/api": "^2.20.7",
     "@testing-library/dom": "^10.4.0",
