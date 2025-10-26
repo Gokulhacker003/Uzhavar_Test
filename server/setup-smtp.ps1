@@ -4,7 +4,7 @@
 
 param()
 
-Write-Host "Interactive SMTP setup for Ullavar server" -ForegroundColor Cyan
+Write-Host "Interactive SMTP setup for Uzhavar server" -ForegroundColor Cyan
 
 $smtpUser = Read-Host "Enter SMTP user (email address)"
 if ([string]::IsNullOrWhiteSpace($smtpUser)) { Write-Host 'SMTP user cannot be empty' -ForegroundColor Red; exit 1 }

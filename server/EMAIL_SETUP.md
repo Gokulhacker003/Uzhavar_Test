@@ -66,4 +66,4 @@ Even when email sending fails, all submissions are:
 
 ## Admin Access
 
-View all submissions at: `http://localhost:4000/api/submissions?adminKey=ullavar2025`
+View all submissions at: `http://localhost:4000/api/submissions?adminKey=uzhavar2025`

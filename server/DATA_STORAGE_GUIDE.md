@@ -1,6 +1,6 @@
-# Data Storage Guide - Ullavar Connect
+# Data Storage Guide - Uzhavar Connect
 
-This document explains where all form submission data is stored when users fill out forms on the Ullavar Connect platform.
+This document explains where all form submission data is stored when users fill out forms on the Uzhavar Connect platform.
 
 ## 📁 Storage Locations
 
@@ -88,16 +88,16 @@ This document explains where all form submission data is stored when users fill 
 ### View All Form Submissions:
 - **Endpoint**: `GET /api/submissions`
 - **Authentication**: Requires admin key
-- **Headers**: `x-admin-key: ullavar2025` or `?adminKey=ullavar2025`
+- **Headers**: `x-admin-key: uzhavar2025` or `?adminKey=uzhavar2025`
 
 ### View User Registration Data:
 - **Endpoint**: `GET /api/user-data`
 - **Authentication**: Requires admin key
-- **Headers**: `x-admin-key: ullavar2025` or `?adminKey=ullavar2025`
+- **Headers**: `x-admin-key: uzhavar2025` or `?adminKey=uzhavar2025`
 
 ### Example Admin Request:
 ```bash
-curl -H "x-admin-key: ullavar2025" http://localhost:4000/api/submissions
+curl -H "x-admin-key: uzhavar2025" http://localhost:4000/api/submissions
 ```
 
 ## 📧 Email Configuration
@@ -127,9 +127,9 @@ curl -H "x-admin-key: ullavar2025" http://localhost:4000/api/submissions
 ## 🛠️ Backup and Maintenance
 
 ### File Locations:
-- `D:\Projects\ullavar-main\ullavar-main\server\data\submissions.json`
-- `D:\Projects\ullavar-main\ullavar-main\server\data\user-data.json`
-- `D:\Projects\ullavar-main\ullavar-main\server\data\email.log`
+- `D:\Projects\uzhavar-main\uzhavar-main\server\data\submissions.json`
+- `D:\Projects\uzhavar-main\uzhavar-main\server\data\user-data.json`
+- `D:\Projects\uzhavar-main\uzhavar-main\server\data\email.log`
 
 ### Backup Recommendations:
 1. Regular backup of the entire `data` folder
