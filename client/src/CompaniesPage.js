@@ -27,6 +27,12 @@ export default function CompaniesPage() {
       })
       .then(data => {
         console.log('Companies loaded:', data);
+        // Debug: Log logo URLs
+        data.forEach(company => {
+          if (company.logo) {
+            console.log(`Company: ${company.name}, Logo path: ${company.logo}, Full URL: ${imageUrl(company.logo)}`);
+          }
+        });
         setCompanies(data);
         setLastUpdated(new Date());
         setLoading(false);
@@ -63,20 +69,24 @@ export default function CompaniesPage() {
         border: '2px solid transparent'
       }}
       onMouseOver={e => {
-        e.target.style.transform = 'translateY(-4px)';
-        e.target.style.boxShadow = '0 8px 24px rgba(56,142,60,0.15)';
-        e.target.style.borderColor = '#388e3c';
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 8px 24px rgba(56,142,60,0.15)';
+        e.currentTarget.style.borderColor = '#388e3c';
       }}
       onMouseOut={e => {
-        e.target.style.transform = 'translateY(0)';
-        e.target.style.boxShadow = '0 2px 8px rgba(56,142,60,0.07)';
-        e.target.style.borderColor = 'transparent';
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(56,142,60,0.07)';
+        e.currentTarget.style.borderColor = 'transparent';
       }}
     >
       <img 
-        src={imageUrl(c.logo) || (c.products && c.products.length > 0 && c.products[0].image ? imageUrl(c.products[0].image) : fallbackImg)} 
+        src={c.logo ? imageUrl(c.logo) : (c.products && c.products.length > 0 && c.products[0].image ? imageUrl(c.products[0].image) : fallbackImg)} 
         alt={c.name} 
         style={{ width: 80, height: 80, borderRadius: '50%', marginBottom: '1em', objectFit: 'cover', boxShadow: '0 2px 8px rgba(56,142,60,0.10)' }} 
+        onError={(e) => {
+          console.log('Image failed to load:', e.target.src, 'for company:', c.name);
+          e.target.src = fallbackImg;
+        }}
       />
       <h3 style={{ color: '#388e3c', fontWeight: 700, fontSize: '1.3em', marginBottom: '0.7em' }}>{c.name}</h3>
       <p style={{ color: '#444', fontSize: '1.08em', textAlign: 'center', marginBottom: '1em' }}>{c.description}</p>
@@ -125,9 +135,13 @@ export default function CompaniesPage() {
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1em' }}>
           <img 
-            src={imageUrl(company.logo) || (company.products && company.products.length > 0 && company.products[0].image ? imageUrl(company.products[0].image) : (company.name && company.name.includes('Masala') ? fallbackMasala : fallbackOrganics))} 
+            src={company.logo ? imageUrl(company.logo) : (company.products && company.products.length > 0 && company.products[0].image ? imageUrl(company.products[0].image) : (company.name && company.name.includes('Masala') ? fallbackMasala : fallbackOrganics))} 
             alt={company.name} 
             style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 8px rgba(56,142,60,0.10)' }} 
+            onError={(e) => {
+              console.log('Detail image failed to load:', e.target.src, 'for company:', company.name);
+              e.target.src = company.name && company.name.includes('Masala') ? fallbackMasala : fallbackOrganics;
+            }}
           />
           <div>
             <h2 style={{ color: "#388e3c", margin: 0, fontWeight: 800, fontSize: '2.2em', letterSpacing: '1px' }}>{company.name}</h2>
@@ -151,8 +165,8 @@ export default function CompaniesPage() {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 transition: 'transform 0.2s ease'
               }}
-              onMouseOver={e => e.target.style.transform = 'translateY(-2px)'}
-              onMouseOut={e => e.target.style.transform = 'translateY(0)'}
+              onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
               >
                 <div style={{ 
                   width: '100%', 
@@ -170,6 +184,11 @@ export default function CompaniesPage() {
                       src={imageUrl(product.image)} 
                       alt={product.name} 
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      onError={(e) => {
+                        console.log('Product image failed to load:', e.target.src);
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = '<div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%); display: flex; align-items: center; justify-content: center; color: #999; font-size: 0.9em;">Image Not Found</div>';
+                      }}
                     />
                   ) : (
                     <div style={{ 

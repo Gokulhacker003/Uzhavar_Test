@@ -26,6 +26,7 @@ import SellProducePage from './pages/SellProducePage';
 import JoinUsPage from './pages/JoinUsPage';
 import LandPage from './pages/LandPage';
 import ConstructionPage from './pages/ConstructionPage';
+import OurServicesPage from './pages/OurServicesPage';
 import ScrollToTop from './ScrollToTop';
 import { apiUrl } from './api';
 // ...existing code...
@@ -191,6 +192,7 @@ function App() {
               <li><NavLink to="/" end onClick={() => setIsMenuOpen(false)}>Home</NavLink></li>
               <li><NavLink to="/about" onClick={() => setIsMenuOpen(false)}>About</NavLink></li>
               <li><NavLink to="/companies" onClick={() => setIsMenuOpen(false)}>Our Companies</NavLink></li>
+              <li><NavLink to="/our-services" onClick={() => setIsMenuOpen(false)}>Our Services</NavLink></li>
               <li><NavLink to="/manage-farm" onClick={() => setIsMenuOpen(false)}>Manage Farm</NavLink></li>
               <li><NavLink to="/buy-inputs" onClick={() => setIsMenuOpen(false)}>Buy Inputs</NavLink></li>
               <li><NavLink to="/sell-produce" onClick={() => setIsMenuOpen(false)}>Sell Produce</NavLink></li>
@@ -227,6 +229,7 @@ function App() {
             <Route path="/sell-produce" element={<SellProducePage />} />
             <Route path="/land" element={<LandPage />} />
             <Route path="/construction" element={<ConstructionPage />} />
+            <Route path="/our-services" element={<OurServicesPage />} />
             <Route path="/request-quote" element={<RequestQuotePage />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/join" element={<JoinUsPage />} />

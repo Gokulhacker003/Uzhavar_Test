@@ -89,6 +89,7 @@ export default function BookTeamPage() {
           transform: 'translate(-50%, -50%)',
           zIndex: -1,
           objectFit: 'cover',
+          opacity: 0.45
         }}
       >
         <source src={process.env.PUBLIC_URL + '/videos/farm-bg.mp4'} type="video/mp4" />
