@@ -4,6 +4,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -668,6 +669,23 @@ app.delete('/api/plans/:id', (req, res) => {
     res.status(500).json({ error: 'Failed to delete plan' });
   }
 });
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Keep server awake on Render (pings itself every 10 minutes)
+if (process.env.RENDER) {
+  const RENDER_URL = process.env.RENDER_EXTERNAL_URL || 'https://uzhavar.onrender.com';
+  setInterval(() => {
+    https.get(`${RENDER_URL}/health`, (res) => {
+      console.log(`Keep-alive ping: ${res.statusCode}`);
+    }).on('error', (err) => {
+      console.error('Keep-alive ping failed:', err.message);
+    });
+  }, 10 * 60 * 1000); // 10 minutes
+}
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server listening on port ${PORT}`);
