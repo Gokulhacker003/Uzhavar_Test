@@ -1,6 +1,9 @@
 // client/src/api.js
 const API_BASE = (process.env.REACT_APP_API_URL || '').replace(/\/$/, '');
 
+// Debug: Log the API base URL
+console.log('🔧 API_BASE configured as:', API_BASE || '(using proxy)');
+
 export function apiUrl(path) {
   if (!path) path = '';
   if (!API_BASE) return path.startsWith('/') ? path : `/${path}`;

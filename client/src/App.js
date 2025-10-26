@@ -14,9 +14,6 @@ import FarmDetailsPage from './FarmDetailsPage';
 import BookTeamPage from './BookTeamPage';
 import { BrowserRouter as Router, Routes, Route, Link, NavLink } from 'react-router-dom';
 import './App.css';
-import {
-  GiWheat
-} from 'react-icons/gi';
 import AboutPage from './pages/AboutPage';
 import projects from './data/projects';
 import HomePage from './pages/HomePage';
@@ -180,7 +177,7 @@ function App() {
         <nav className="navbar" style={{ minHeight: '44px', padding: '0 1em', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
           <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '44px' }}>
             <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5em', fontSize: '1em' }}>
-              <GiWheat className="logo-icon" style={{ fontSize: '1.2em' }} />
+              <img src={process.env.PUBLIC_URL + '/assert/logo.png'} alt="Uzhavar Connect Logo" className="logo-icon" style={{ height: '32px', width: 'auto' }} />
               <span className="logo-text" style={{ fontWeight: 700, color: '#388e3c' }}>Uzhavar Connect</span>
             </div>
             <div className={`burger ${isMenuOpen ? 'open' : ''}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>

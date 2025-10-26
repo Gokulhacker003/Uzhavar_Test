@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { GiWheat } from 'react-icons/gi';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -9,8 +8,7 @@ const Navbar = () => {
     <nav className="navbar" style={{ minHeight: '44px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
       <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', height: '44px' }}>
         <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5em', fontSize: '1em' }}>
-          <GiWheat className="logo-icon" style={{ fontSize: '1.2em' }} />
-          <span className="logo-text" style={{ fontWeight: 700, color: '#388e3c' }}>Uzhavar Connect</span>
+          <img src={process.env.PUBLIC_URL + '/assert/logo.png'} alt="Uzhavar Connect Logo" className="logo-icon" style={{ height: '32px', width: 'auto' }} />
         </div>
         
         {/* Burger button - visible only on mobile */}

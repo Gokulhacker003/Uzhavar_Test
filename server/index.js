@@ -413,13 +413,134 @@ app.post('/api/send-email', async (req, res) => {
         },
       });
 
-      const text = `Form Type: ${formType}\nName: ${name}\nTime: ${now}\n\nPayload:\n${JSON.stringify(req.body, null, 2)}\n`;
+      // Format the email based on form type
+      let htmlContent = '';
+      let textContent = '';
+
+      if (formType === 'Product Order') {
+        const extra = req.body?.extra || {};
+        const phone = req.body?.phone || 'N/A';
+        const email = req.body?.email || 'N/A';
+        const orderDate = new Date(now).toLocaleString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          dateStyle: 'medium',
+          timeStyle: 'short'
+        });
+
+        htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+            <div style="background-color: #4CAF50; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; font-size: 24px;">📦 New Product Order</h1>
+            </div>
+            
+            <div style="background-color: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <h2 style="color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px;">Customer Details</h2>
+              <table style="width: 100%; margin-bottom: 20px;">
+                <tr><td style="padding: 8px 0; color: #666;"><strong>Name:</strong></td><td style="padding: 8px 0;">${name}</td></tr>
+                <tr><td style="padding: 8px 0; color: #666;"><strong>Phone:</strong></td><td style="padding: 8px 0;">${phone}</td></tr>
+                <tr><td style="padding: 8px 0; color: #666;"><strong>Email:</strong></td><td style="padding: 8px 0;">${email}</td></tr>
+              </table>
+
+              <h2 style="color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; margin-top: 30px;">Order Details</h2>
+              <table style="width: 100%; margin-bottom: 20px;">
+                <tr><td style="padding: 8px 0; color: #666;"><strong>Product:</strong></td><td style="padding: 8px 0;">${extra['Product Name'] || 'N/A'}</td></tr>
+                <tr><td style="padding: 8px 0; color: #666;"><strong>Company:</strong></td><td style="padding: 8px 0;">${extra['Company'] || 'N/A'}</td></tr>
+                <tr><td style="padding: 8px 0; color: #666;"><strong>Price:</strong></td><td style="padding: 8px 0;">${extra['Price'] || 'N/A'}</td></tr>
+                <tr><td style="padding: 8px 0; color: #666;"><strong>Quantity:</strong></td><td style="padding: 8px 0;">${extra['Quantity'] || 1}</td></tr>
+                <tr style="background-color: #f0f0f0;">
+                  <td style="padding: 12px 8px; color: #333; font-size: 16px;"><strong>Total Amount:</strong></td>
+                  <td style="padding: 12px 8px; color: #4CAF50; font-size: 18px; font-weight: bold;">${extra['Total Amount'] || 'N/A'}</td>
+                </tr>
+              </table>
+
+              <h2 style="color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; margin-top: 30px;">Delivery Address</h2>
+              <p style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4CAF50; margin: 10px 0;">${extra['Delivery Address'] || 'N/A'}</p>
+
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
+                <p><strong>Order Time:</strong> ${orderDate}</p>
+                <p style="margin-top: 10px;">This is an automated email from Uzhavar Connect. Please process this order promptly.</p>
+              </div>
+            </div>
+          </div>
+        `;
+
+        textContent = `📦 NEW PRODUCT ORDER
+
+CUSTOMER DETAILS:
+Name: ${name}
+Phone: ${phone}
+Email: ${email}
+
+ORDER DETAILS:
+Product: ${extra['Product Name'] || 'N/A'}
+Company: ${extra['Company'] || 'N/A'}
+Price: ${extra['Price'] || 'N/A'}
+Quantity: ${extra['Quantity'] || 1}
+TOTAL AMOUNT: ${extra['Total Amount'] || 'N/A'}
+
+DELIVERY ADDRESS:
+${extra['Delivery Address'] || 'N/A'}
+
+Order Time: ${orderDate}
+`;
+      } else {
+        // Default format for other form types
+        const extra = req.body?.extra || {};
+        const phone = req.body?.phone || 'N/A';
+        const email = req.body?.email || 'N/A';
+        const message = req.body?.message || '';
+
+        htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+            <div style="background-color: #2196F3; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; font-size: 24px;">📧 ${formType}</h1>
+            </div>
+            
+            <div style="background-color: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <h2 style="color: #333; border-bottom: 2px solid #2196F3; padding-bottom: 10px;">Contact Information</h2>
+              <table style="width: 100%; margin-bottom: 20px;">
+                <tr><td style="padding: 8px 0; color: #666;"><strong>Name:</strong></td><td style="padding: 8px 0;">${name}</td></tr>
+                <tr><td style="padding: 8px 0; color: #666;"><strong>Phone:</strong></td><td style="padding: 8px 0;">${phone}</td></tr>
+                <tr><td style="padding: 8px 0; color: #666;"><strong>Email:</strong></td><td style="padding: 8px 0;">${email}</td></tr>
+              </table>
+
+              ${message ? `<h2 style="color: #333; border-bottom: 2px solid #2196F3; padding-bottom: 10px; margin-top: 30px;">Message</h2>
+              <p style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #2196F3; margin: 10px 0;">${message}</p>` : ''}
+
+              ${Object.keys(extra).length > 0 ? `<h2 style="color: #333; border-bottom: 2px solid #2196F3; padding-bottom: 10px; margin-top: 30px;">Additional Details</h2>
+              <table style="width: 100%; margin-bottom: 20px;">
+                ${Object.entries(extra).map(([key, value]) => `
+                  <tr><td style="padding: 8px 0; color: #666;"><strong>${key}:</strong></td><td style="padding: 8px 0;">${value}</td></tr>
+                `).join('')}
+              </table>` : ''}
+
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
+                <p><strong>Received:</strong> ${new Date(now).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
+              </div>
+            </div>
+          </div>
+        `;
+
+        textContent = `${formType.toUpperCase()}
+
+CONTACT INFORMATION:
+Name: ${name}
+Phone: ${phone}
+Email: ${email}
+
+${message ? `MESSAGE:\n${message}\n` : ''}
+${Object.keys(extra).length > 0 ? `\nADDITIONAL DETAILS:\n${Object.entries(extra).map(([k, v]) => `${k}: ${v}`).join('\n')}` : ''}
+
+Received: ${new Date(now).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+`;
+      }
 
       await transporter.sendMail({
         from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: toEmail,
         subject,
-        text,
+        text: textContent,
+        html: htmlContent,
       });
 
       fs.appendFileSync(emailLogPath, `[${now}] sent to ${toEmail} | ${subject}\n`);
