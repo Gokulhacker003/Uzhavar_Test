@@ -712,11 +712,7 @@ if (process.env.NODE_ENV === 'production') {
   
   // All non-API GET routes serve React app (this should be last!)
   app.get('*', (req, res) => {
-    // Only serve React for non-API routes
-    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
-      // Let Express handle the 404 for API routes that don't exist
-      return res.status(404).json({ error: 'API endpoint not found' });
-    }
+    // Serve React app for all GET requests (API routes are already handled above)
     res.sendFile(path.join(frontendBuildPath, 'index.html'));
   });
 }
