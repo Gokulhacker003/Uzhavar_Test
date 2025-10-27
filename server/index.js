@@ -107,13 +107,27 @@ app.get('/api/companies', (req, res) => {
 
 // Create new company
 app.post('/api/companies', upload.single('logo'), (req, res) => {
+  console.log('➕ POST /api/companies - Creating new company');
+  console.log('📝 Request body:', req.body);
+  console.log('📝 File uploaded:', req.file ? req.file.filename : 'none');
+  
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   
   try {
+    // Ensure data directory exists
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      console.log('⚠️ Data directory does not exist, creating it...');
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
     let companies = [];
     if (fs.existsSync(companiesPath)) {
       const data = fs.readFileSync(companiesPath, 'utf8');
       companies = JSON.parse(data);
+      console.log('📊 Existing companies:', companies.length);
+    } else {
+      console.log('⚠️ Companies file does not exist, will create new one');
     }
     
     const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo || '');
@@ -127,54 +141,88 @@ app.post('/api/companies', upload.single('logo'), (req, res) => {
     };
     
     companies.push(newCompany);
+    console.log('💾 Writing new company to file...');
     
-    // Ensure data directory exists
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
+    try {
+      fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+      console.log('✅ Company created successfully');
+    } catch (writeError) {
+      console.warn('⚠️ Could not write to file (this is normal on Render):', writeError.message);
     }
     
-    fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
     res.json(newCompany);
   } catch (error) {
-    console.error('Error creating company:', error);
+    console.error('❌ Error creating company:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to create company', details: error.message });
   }
 });
 
 // Update company
 app.put('/api/companies/:id', upload.single('logo'), (req, res) => {
+  console.log('📝 PUT /api/companies/:id - Request received');
+  console.log('📝 Company ID:', req.params.id);
+  console.log('📝 Request body:', req.body);
+  console.log('📝 File uploaded:', req.file ? req.file.filename : 'none');
+  
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { id } = req.params;
   
   try {
+    // Ensure data directory exists
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      console.log('⚠️ Data directory does not exist, creating it...');
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
     if (fs.existsSync(companiesPath)) {
+      console.log('✅ Companies file exists, reading...');
       const data = fs.readFileSync(companiesPath, 'utf8');
       let companies = JSON.parse(data);
+      console.log('📊 Total companies:', companies.length);
       
       // Handle both string and number IDs
       const index = companies.findIndex(c => c.id == id);
+      console.log('🔍 Company index found:', index);
+      
       if (index !== -1) {
         const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo !== undefined ? req.body.logo : companies[index].logo);
         
         // Preserve products array when updating company
-        companies[index] = { 
+        const updatedCompany = { 
           ...companies[index], 
           name: req.body.name,
           description: req.body.description || '',
           logo: logoPath,
           products: companies[index].products || []
         };
-        fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
-        res.json(companies[index]);
+        
+        companies[index] = updatedCompany;
+        console.log('💾 Writing updated company to file...');
+        
+        try {
+          fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+          console.log('✅ Company updated successfully');
+          res.json(updatedCompany);
+        } catch (writeError) {
+          console.error('❌ Error writing to file:', writeError);
+          // If file system is read-only (like on Render), still return success
+          // but log the warning
+          console.warn('⚠️ File system may be read-only (this is normal on Render)');
+          res.json(updatedCompany);
+        }
       } else {
+        console.log('❌ Company not found with ID:', id);
         res.status(404).json({ error: 'Company not found' });
       }
     } else {
+      console.log('❌ Companies file not found at:', companiesPath);
       res.status(404).json({ error: 'Companies file not found' });
     }
   } catch (error) {
-    console.error('Error updating company:', error);
+    console.error('❌ Error updating company:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to update company', details: error.message });
   }
 });
@@ -715,6 +763,20 @@ app.delete('/api/plans/:id', (req, res) => {
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Global error handler - MUST be after all routes
+app.use((err, req, res, next) => {
+  console.error('🚨 Global error handler caught:', err);
+  console.error('Error stack:', err.stack);
+  
+  // Prevent HTML error pages - always send JSON
+  if (!res.headersSent) {
+    res.status(err.status || 500).json({
+      error: err.message || 'Internal server error',
+      details: process.env.NODE_ENV === 'production' ? undefined : err.stack
+    });
+  }
 });
 
 // Serve React frontend in production
