@@ -356,8 +356,11 @@ app.post('/api/store-data', (req, res) => {
   }
 });
 
-// Send email endpoint (placeholder - implement with nodemailer or your email service)
+// Send email endpoint
 app.post('/api/send-email', async (req, res) => {
+  console.log('📧 Email endpoint hit');
+  console.log('📧 Request body:', JSON.stringify(req.body, null, 2));
+  
   try {
     // Basic phone validation when provided
     const rawPhone = req.body?.phone || req.body?.payload?.phone || '';
@@ -365,6 +368,14 @@ app.post('/api/send-email', async (req, res) => {
     if (rawPhone && digits.length !== 10) {
       return res.status(400).json({ error: 'Invalid phone number. Provide exactly 10 digits.' });
     }
+
+    const now = new Date().toISOString();
+    const formType = req.body?.formType || 'Form Submission';
+    const name = req.body?.name || req.body?.payload?.name || 'Unknown';
+    const toEmail = process.env.SMTP_USER || 'mylearnings2715@gmail.com';
+    const subject = req.body?.subject || `${formType} from ${name}`;
+
+    console.log('📧 Email details:', { formType, name, toEmail, subject });
 
     // 1) Persist submission locally (wrapped in try-catch for Render compatibility)
     const dataDir = path.join(__dirname, 'data');
@@ -383,16 +394,10 @@ app.post('/api/send-email', async (req, res) => {
         }
       }
 
-      const now = new Date().toISOString();
       const ua = req.headers['user-agent'] || '';
       const referer = req.headers['referer'] || '';
       const contentLength = req.headers['content-length'] || '';
       const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
-
-      const formType = req.body?.formType || 'Form Submission';
-      const name = req.body?.name || req.body?.payload?.name || 'Unknown';
-      const toEmail = process.env.SMTP_USER || 'uzhavarconnect2025@gmail.com';
-      const subject = req.body?.subject || `${formType} from ${name}`;
 
       const record = {
         receivedAt: now,
@@ -414,19 +419,26 @@ app.post('/api/send-email', async (req, res) => {
       console.warn('⚠️ Could not save submission to file (this is normal on Render):', fileError.message);
     }
 
-    const now = new Date().toISOString();
-    const formType = req.body?.formType || 'Form Submission';
-    const name = req.body?.name || req.body?.payload?.name || 'Unknown';
-    const toEmail = process.env.SMTP_USER || 'mylearnings2715@gmail.com';
-    const subject = req.body?.subject || `${formType} from ${name}`;
+    // 2) Check if email sending is enabled
+    const sendEmails = String(process.env.SEND_EMAILS).toLowerCase() === 'true';
+    console.log('📧 SEND_EMAILS env var:', process.env.SEND_EMAILS);
+    console.log('📧 Will send email:', sendEmails);
 
-    // 2) Optionally send real email (if enabled)
-    if (String(process.env.SEND_EMAILS).toLowerCase() === 'true') {
+    if (sendEmails) {
+      console.log('📧 Attempting to send email...');
       const nodemailer = require('nodemailer');
       
       // Use port 587 with STARTTLS for Render compatibility (port 465 is blocked)
       const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
       const smtpSecure = smtpPort === 465; // true for 465, false for other ports
+      
+      console.log('📧 SMTP Config:', {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: smtpPort,
+        secure: smtpSecure,
+        user: process.env.SMTP_USER,
+        hasPassword: !!process.env.SMTP_PASS
+      });
       
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -436,7 +448,6 @@ app.post('/api/send-email', async (req, res) => {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
-        // Add connection timeout and other options
         connectionTimeout: 10000, // 10 seconds
         greetingTimeout: 10000,
         socketTimeout: 30000
@@ -474,12 +485,7 @@ app.post('/api/send-email', async (req, res) => {
               <table style="width: 100%; margin-bottom: 20px;">
                 <tr><td style="padding: 8px 0; color: #666;"><strong>Product:</strong></td><td style="padding: 8px 0;">${extra['Product Name'] || 'N/A'}</td></tr>
                 <tr><td style="padding: 8px 0; color: #666;"><strong>Company:</strong></td><td style="padding: 8px 0;">${extra['Company'] || 'N/A'}</td></tr>
-                <tr><td style="padding: 8px 0; color: #666;"><strong>Price:</strong></td><td style="padding: 8px 0;">${extra['Price'] || 'N/A'}</td></tr>
                 <tr><td style="padding: 8px 0; color: #666;"><strong>Quantity:</strong></td><td style="padding: 8px 0;">${extra['Quantity'] || 1}</td></tr>
-                <tr style="background-color: #f0f0f0;">
-                  <td style="padding: 12px 8px; color: #333; font-size: 16px;"><strong>Total Amount:</strong></td>
-                  <td style="padding: 12px 8px; color: #4CAF50; font-size: 18px; font-weight: bold;">${extra['Total Amount'] || 'N/A'}</td>
-                </tr>
               </table>
 
               <h2 style="color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; margin-top: 30px;">Delivery Address</h2>
@@ -487,7 +493,6 @@ app.post('/api/send-email', async (req, res) => {
 
               <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
                 <p><strong>Order Time:</strong> ${orderDate}</p>
-                <p style="margin-top: 10px;">This is an automated email from Uzhavar Connect. Please process this order promptly.</p>
               </div>
             </div>
           </div>
@@ -503,9 +508,7 @@ Email: ${email}
 ORDER DETAILS:
 Product: ${extra['Product Name'] || 'N/A'}
 Company: ${extra['Company'] || 'N/A'}
-Price: ${extra['Price'] || 'N/A'}
 Quantity: ${extra['Quantity'] || 1}
-TOTAL AMOUNT: ${extra['Total Amount'] || 'N/A'}
 
 DELIVERY ADDRESS:
 ${extra['Delivery Address'] || 'N/A'}
@@ -564,7 +567,8 @@ Received: ${new Date(now).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
 `;
       }
 
-      await transporter.sendMail({
+      console.log('📧 Sending email to:', toEmail);
+      const info = await transporter.sendMail({
         from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: toEmail,
         subject,
@@ -572,14 +576,24 @@ Received: ${new Date(now).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
         html: htmlContent,
       });
 
-      fs.appendFileSync(emailLogPath, `[${now}] sent to ${toEmail} | ${subject}\n`);
+      console.log('✅ Email sent successfully! Message ID:', info.messageId);
+      
+      // Log success (wrapped in try-catch)
+      try {
+        const emailLogPath = path.join(dataDir, 'email.log');
+        fs.appendFileSync(emailLogPath, `[${now}] sent to ${toEmail} | ${subject}\n`);
+      } catch (logError) {
+        console.warn('⚠️ Could not write to email.log:', logError.message);
+      }
+      
       return res.json({ success: true, message: 'Email sent', queued: false });
     }
 
     // If not sending, we still logged & stored
+    console.log('ℹ️ Email sending disabled (SEND_EMAILS != true)');
     return res.json({ success: true, message: 'Submission stored (email sending disabled)', queued: true });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('❌ Error in /api/send-email:', error);
     return res.status(500).json({ error: 'Failed to process email request', details: error.message });
   }
 });
