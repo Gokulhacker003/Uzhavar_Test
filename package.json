@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "uzhavar-connect",
   "version": "1.0.0",
   "description": "Uzhavar Connect - Agricultural Services Platform",

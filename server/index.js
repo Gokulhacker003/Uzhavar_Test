@@ -366,46 +366,59 @@ app.post('/api/send-email', async (req, res) => {
       return res.status(400).json({ error: 'Invalid phone number. Provide exactly 10 digits.' });
     }
 
-    // 1) Persist submission locally
+    // 1) Persist submission locally (wrapped in try-catch for Render compatibility)
     const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    try {
+      if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-    const submissionsPath = path.join(dataDir, 'submissions.json');
-    const emailLogPath = path.join(dataDir, 'email.log');
+      const submissionsPath = path.join(dataDir, 'submissions.json');
+      const emailLogPath = path.join(dataDir, 'email.log');
 
-    let submissions = [];
-    if (fs.existsSync(submissionsPath)) {
-      try {
-        submissions = JSON.parse(fs.readFileSync(submissionsPath, 'utf8')) || [];
-      } catch (_) {
-        submissions = [];
+      let submissions = [];
+      if (fs.existsSync(submissionsPath)) {
+        try {
+          submissions = JSON.parse(fs.readFileSync(submissionsPath, 'utf8')) || [];
+        } catch (_) {
+          submissions = [];
+        }
       }
+
+      const now = new Date().toISOString();
+      const ua = req.headers['user-agent'] || '';
+      const referer = req.headers['referer'] || '';
+      const contentLength = req.headers['content-length'] || '';
+      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+
+      const formType = req.body?.formType || 'Form Submission';
+      const name = req.body?.name || req.body?.payload?.name || 'Unknown';
+      const toEmail = process.env.SMTP_USER || 'uzhavarconnect2025@gmail.com';
+      const subject = req.body?.subject || `${formType} from ${name}`;
+
+      const record = {
+        receivedAt: now,
+        toEmail,
+        subject,
+        payload: req.body || {},
+        metadata: { userAgent: ua, ip, referer, contentLength }
+      };
+
+      submissions.push(record);
+      fs.writeFileSync(submissionsPath, JSON.stringify(submissions, null, 2));
+
+      const logLine = `[${now}] queued to ${toEmail} | ${subject}\n`;
+      fs.appendFileSync(emailLogPath, logLine);
+      
+      console.log('✅ Submission saved locally');
+    } catch (fileError) {
+      // Log file system errors but don't fail the email send
+      console.warn('⚠️ Could not save submission to file (this is normal on Render):', fileError.message);
     }
 
     const now = new Date().toISOString();
-    const ua = req.headers['user-agent'] || '';
-    const referer = req.headers['referer'] || '';
-    const contentLength = req.headers['content-length'] || '';
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
-
     const formType = req.body?.formType || 'Form Submission';
     const name = req.body?.name || req.body?.payload?.name || 'Unknown';
-    const toEmail = process.env.SMTP_USER || 'uzhavarconnect2025@gmail.com';
+    const toEmail = process.env.SMTP_USER || 'mylearnings2715@gmail.com';
     const subject = req.body?.subject || `${formType} from ${name}`;
-
-    const record = {
-      receivedAt: now,
-      toEmail,
-      subject,
-      payload: req.body || {},
-      metadata: { userAgent: ua, ip, referer, contentLength }
-    };
-
-    submissions.push(record);
-    fs.writeFileSync(submissionsPath, JSON.stringify(submissions, null, 2));
-
-    const logLine = `[${now}] queued to ${toEmail} | ${subject}\n`;
-    fs.appendFileSync(emailLogPath, logLine);
 
     // 2) Optionally send real email (if enabled)
     if (String(process.env.SEND_EMAILS).toLowerCase() === 'true') {
