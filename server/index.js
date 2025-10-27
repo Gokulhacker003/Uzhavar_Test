@@ -697,11 +697,12 @@ if (process.env.NODE_ENV === 'production') {
   // Serve static files from React build
   app.use(express.static(frontendBuildPath));
   
-  // All non-API routes serve React app (this should be last!)
+  // All non-API GET routes serve React app (this should be last!)
   app.get('*', (req, res) => {
-    // Skip API routes
+    // Only serve React for non-API routes
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
-      return res.status(404).json({ error: 'Not found' });
+      // Let Express handle the 404 for API routes that don't exist
+      return res.status(404).json({ error: 'API endpoint not found' });
     }
     res.sendFile(path.join(frontendBuildPath, 'index.html'));
   });
