@@ -229,39 +229,85 @@ app.put('/api/companies/:id', upload.single('logo'), (req, res) => {
 
 // Delete company
 app.delete('/api/companies/:id', (req, res) => {
+  console.log('🗑️ DELETE /api/companies/:id - Deleting company');
+  console.log('📝 Company ID:', req.params.id);
+  
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { id } = req.params;
   
   try {
+    // Ensure data directory exists
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      console.log('⚠️ Data directory does not exist, creating it...');
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
     if (fs.existsSync(companiesPath)) {
+      console.log('✅ Companies file exists, reading...');
       const data = fs.readFileSync(companiesPath, 'utf8');
       let companies = JSON.parse(data);
       
+      const beforeCount = companies.length;
       // Handle both string and number IDs
       companies = companies.filter(c => c.id != id);
-      fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
-      res.json({ message: 'Company deleted' });
+      const afterCount = companies.length;
+      
+      console.log('📊 Companies before:', beforeCount, 'after:', afterCount);
+      
+      if (beforeCount > afterCount) {
+        console.log('💾 Writing updated companies to file...');
+        
+        try {
+          fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+          console.log('✅ Company deleted successfully');
+        } catch (writeError) {
+          console.warn('⚠️ Could not write to file (this is normal on Render):', writeError.message);
+        }
+        
+        res.json({ message: 'Company deleted' });
+      } else {
+        console.log('❌ Company not found with ID:', id);
+        res.status(404).json({ error: 'Company not found' });
+      }
     } else {
+      console.log('❌ Companies file not found at:', companiesPath);
       res.status(404).json({ error: 'Companies file not found' });
     }
   } catch (error) {
-    console.error('Error deleting company:', error);
-    res.status(500).json({ error: 'Failed to delete company' });
+    console.error('❌ Error deleting company:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to delete company', details: error.message });
   }
 });
 
 // Add product to company
 app.post('/api/companies/:companyId/products', upload.single('image'), (req, res) => {
+  console.log('➕ POST /api/companies/:companyId/products - Adding product');
+  console.log('📝 Company ID:', req.params.companyId);
+  console.log('📝 Request body:', req.body);
+  console.log('📝 File uploaded:', req.file ? req.file.filename : 'none');
+  
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { companyId } = req.params;
   
   try {
+    // Ensure data directory exists
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      console.log('⚠️ Data directory does not exist, creating it...');
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
     if (fs.existsSync(companiesPath)) {
+      console.log('✅ Companies file exists, reading...');
       const data = fs.readFileSync(companiesPath, 'utf8');
       let companies = JSON.parse(data);
       
       // Handle both string and number IDs
       const company = companies.find(c => c.id == companyId);
+      console.log('🔍 Company found:', company ? company.name : 'not found');
+      
       if (company) {
         if (!company.products) company.products = [];
         
@@ -274,27 +320,52 @@ app.post('/api/companies/:companyId/products', upload.single('image'), (req, res
         };
         
         company.products.push(newProduct);
-        fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+        console.log('💾 Writing updated company to file...');
+        
+        try {
+          fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+          console.log('✅ Product added successfully');
+        } catch (writeError) {
+          console.warn('⚠️ Could not write to file (this is normal on Render):', writeError.message);
+        }
+        
         res.json(company);
       } else {
+        console.log('❌ Company not found with ID:', companyId);
         res.status(404).json({ error: 'Company not found' });
       }
     } else {
+      console.log('❌ Companies file not found at:', companiesPath);
       res.status(404).json({ error: 'Companies file not found' });
     }
   } catch (error) {
-    console.error('Error adding product:', error);
+    console.error('❌ Error adding product:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to add product', details: error.message });
   }
 });
 
 // Update product in company
 app.put('/api/companies/:companyId/products/:productIndex', upload.single('image'), (req, res) => {
+  console.log('📝 PUT /api/companies/:companyId/products/:productIndex - Updating product');
+  console.log('📝 Company ID:', req.params.companyId);
+  console.log('📝 Product Index:', req.params.productIndex);
+  console.log('📝 Request body:', req.body);
+  console.log('📝 File uploaded:', req.file ? req.file.filename : 'none');
+  
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { companyId, productIndex } = req.params;
   
   try {
+    // Ensure data directory exists
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      console.log('⚠️ Data directory does not exist, creating it...');
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
     if (fs.existsSync(companiesPath)) {
+      console.log('✅ Companies file exists, reading...');
       const data = fs.readFileSync(companiesPath, 'utf8');
       let companies = JSON.parse(data);
       
@@ -302,35 +373,67 @@ app.put('/api/companies/:companyId/products/:productIndex', upload.single('image
       const company = companies.find(c => c.id == companyId);
       const idx = parseInt(productIndex);
       
+      console.log('🔍 Company found:', company ? company.name : 'not found');
+      console.log('🔍 Product index:', idx);
+      console.log('🔍 Products array length:', company?.products?.length || 0);
+      
       if (company && company.products && company.products[idx] !== undefined) {
         const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image !== undefined ? req.body.image : company.products[idx].image);
         
-        company.products[idx] = {
+        const updatedProduct = {
           name: req.body.name,
           price: req.body.price,
           image: imagePath
         };
-        fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+        
+        company.products[idx] = updatedProduct;
+        console.log('💾 Writing updated company to file...');
+        
+        try {
+          fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+          console.log('✅ Product updated successfully');
+        } catch (writeError) {
+          console.warn('⚠️ Could not write to file (this is normal on Render):', writeError.message);
+        }
+        
         res.json(company);
       } else {
+        console.log('❌ Company or product not found');
+        console.log('Company exists:', !!company);
+        console.log('Products array exists:', !!company?.products);
+        console.log('Product at index exists:', company?.products?.[idx] !== undefined);
         res.status(404).json({ error: 'Company or product not found' });
       }
     } else {
+      console.log('❌ Companies file not found at:', companiesPath);
       res.status(404).json({ error: 'Companies file not found' });
     }
   } catch (error) {
-    console.error('Error updating product:', error);
+    console.error('❌ Error updating product:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to update product', details: error.message });
   }
 });
 
 // Delete product from company
 app.delete('/api/companies/:companyId/products/:productIndex', (req, res) => {
+  console.log('🗑️ DELETE /api/companies/:companyId/products/:productIndex - Deleting product');
+  console.log('📝 Company ID:', req.params.companyId);
+  console.log('📝 Product Index:', req.params.productIndex);
+  
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { companyId, productIndex } = req.params;
   
   try {
+    // Ensure data directory exists
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      console.log('⚠️ Data directory does not exist, creating it...');
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
     if (fs.existsSync(companiesPath)) {
+      console.log('✅ Companies file exists, reading...');
       const data = fs.readFileSync(companiesPath, 'utf8');
       let companies = JSON.parse(data);
       
@@ -338,18 +441,32 @@ app.delete('/api/companies/:companyId/products/:productIndex', (req, res) => {
       const company = companies.find(c => c.id == companyId);
       const idx = parseInt(productIndex);
       
+      console.log('🔍 Company found:', company ? company.name : 'not found');
+      console.log('🔍 Product index:', idx);
+      
       if (company && company.products && company.products[idx] !== undefined) {
         company.products.splice(idx, 1);
-        fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+        console.log('💾 Writing updated company to file...');
+        
+        try {
+          fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+          console.log('✅ Product deleted successfully');
+        } catch (writeError) {
+          console.warn('⚠️ Could not write to file (this is normal on Render):', writeError.message);
+        }
+        
         res.json(company);
       } else {
+        console.log('❌ Company or product not found');
         res.status(404).json({ error: 'Company or product not found' });
       }
     } else {
+      console.log('❌ Companies file not found at:', companiesPath);
       res.status(404).json({ error: 'Companies file not found' });
     }
   } catch (error) {
-    console.error('Error deleting product:', error);
+    console.error('❌ Error deleting product:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to delete product', details: error.message });
   }
 });
