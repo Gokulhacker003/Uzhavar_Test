@@ -1,5 +1,6 @@
 const express = require('express');
-require('dotenv').config();
+// Load environment variables from root .env file
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
@@ -27,8 +28,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const allowedOrigins = [
-  'https://uzhavar.vercel.app',     // production frontend (NO trailing slash!)
-  'https://uzhavar-backend.vercel.app', // backend itself
+  'https://uzhavar.onrender.com',     // production frontend on Render
+  'https://uzhavar-backend.onrender.com', // backend on Render
   'http://localhost:3000',          // CRA dev
   'http://localhost:3001'           // CRA dev alternate port
 ];
@@ -84,18 +85,22 @@ app.get('/api/submissions', (req, res) => {
 
 // Get all companies
 app.get('/api/companies', (req, res) => {
+  console.log('📦 GET /api/companies - Request received');
   const companiesPath = path.join(__dirname, 'data', 'companies.json');
+  console.log('📂 Looking for file at:', companiesPath);
   
   try {
     if (fs.existsSync(companiesPath)) {
       const data = fs.readFileSync(companiesPath, 'utf8');
       const companies = JSON.parse(data);
+      console.log('✅ Companies loaded:', companies.length);
       res.json(companies);
     } else {
+      console.log('⚠️ Companies file not found');
       res.json([]);
     }
   } catch (error) {
-    console.error('Error reading companies:', error);
+    console.error('❌ Error reading companies:', error);
     res.status(500).json({ error: 'Failed to read companies' });
   }
 });
@@ -684,6 +689,23 @@ app.delete('/api/plans/:id', (req, res) => {
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
+
+// Serve React frontend in production
+if (process.env.NODE_ENV === 'production') {
+  const frontendBuildPath = path.join(__dirname, '../client/build');
+  
+  // Serve static files from React build
+  app.use(express.static(frontendBuildPath));
+  
+  // All non-API routes serve React app (this should be last!)
+  app.get('*', (req, res) => {
+    // Skip API routes
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    res.sendFile(path.join(frontendBuildPath, 'index.html'));
+  });
+}
 
 // Keep server awake on Render (pings itself every 10 minutes)
 if (process.env.RENDER) {

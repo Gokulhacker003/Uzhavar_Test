@@ -71,9 +71,15 @@ export default function OurServicesPage() {
   const services = [
     {
       icon: '🚁',
-      title: 'Drone Services',
+      title: 'Aadhivelan Drone Services',
       description: 'Advanced aerial solutions for modern farming',
-      features: ['Crop monitoring', 'Precision spraying', 'Land surveying', 'Thermal imaging']
+      features: ['Crop monitoring', 'Precision spraying', 'Land surveying', 'Thermal imaging','Manufacturing Drones']
+    },
+    {
+      icon: '⚡',
+      title: 'Motors & Pumps',
+      description: 'Complete motor and pump solutions for agriculture',
+      features: ['Manufacturing motors & pumps', 'Sales & distribution', 'Installation services', 'Maintenance & repair', 'AMC contracts']
     },
     {
       icon: '🌾',

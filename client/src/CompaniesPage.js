@@ -83,10 +83,8 @@ export default function CompaniesPage() {
         extra: {
           'Product Name': selectedProduct.name,
           'Company': selectedProduct.companyName,
-          'Price': selectedProduct.price ? `₹${selectedProduct.price}` : 'N/A',
           'Quantity': orderForm.quantity,
-          'Delivery Address': orderForm.address,
-          'Total Amount': selectedProduct.price ? `₹${selectedProduct.price * orderForm.quantity}` : 'N/A'
+          'Delivery Address': orderForm.address
         }
       };
 
@@ -557,20 +555,6 @@ export default function CompaniesPage() {
                       }}
                     />
                   </div>
-
-                  {selectedProduct.price && (
-                    <div style={{ 
-                      background: '#e8f5e9', 
-                      padding: '1rem', 
-                      borderRadius: 8, 
-                      marginBottom: '1.5rem',
-                      textAlign: 'center'
-                    }}>
-                      <strong style={{ color: '#2e7d32', fontSize: '1.2rem' }}>
-                        Total: ₹{selectedProduct.price * orderForm.quantity}
-                      </strong>
-                    </div>
-                  )}
 
                   <button
                     type="submit"
