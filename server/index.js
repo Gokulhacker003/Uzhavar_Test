@@ -31,13 +31,22 @@ const allowedOrigins = [
   'https://uzhavar.onrender.com',     // production frontend on Render
   'https://uzhavar-backend.onrender.com', // backend on Render
   'http://localhost:3000',          // CRA dev
-  'http://localhost:3001'           // CRA dev alternate port
+  'http://localhost:3001',          // CRA dev alternate port
+  'http://localhost:4000'           // Backend itself (for proxy)
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // allow curl/postman
-    if (allowedOrigins.indexOf(origin) === -1) {
+    // Allow requests with no origin (like mobile apps, curl, Postman, or same-origin via proxy)
+    if (!origin) return callback(null, true);
+    
+    // Remove trailing slash for comparison
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    const normalizedAllowedOrigins = allowedOrigins.map(o => o.replace(/\/$/, ''));
+    
+    // Allow if origin is in the allowed list
+    if (normalizedAllowedOrigins.indexOf(normalizedOrigin) === -1) {
+      console.warn('⚠️ CORS blocked origin:', origin);
       return callback(new Error('CORS policy does not allow access from this origin.'), false);
     }
     return callback(null, true);
@@ -911,7 +920,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Keep server awake on Render (pings itself every 10 minutes)
-if (process.env.RENDER) {
+if (process.env.RENDER && process.env.RENDER_EXTERNAL_URL) {
   const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
   setInterval(() => {
     https.get(`${RENDER_URL}/health`, (res) => {

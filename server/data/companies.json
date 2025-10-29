@@ -3,7 +3,7 @@
     "id": 1,
     "name": "Aadhivelan Masala",
     "description": "Premium spices and masala products by Aadhivelan. Authentic South Indian flavors with traditional recipes.",
-    "logo": "",
+    "logo": "/uploads/1760538721951-page_2.png",
     "products": [
       {
         "name": "Sambar Powder",
@@ -31,12 +31,12 @@
       {
         "name": "Organic Fertilizer",
         "price": "500",
-        "image": "/assets/assert/Farm Shed Construction.jpg"
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsx-Fc_L_XPldmDJrcACnyt93z89oaekwLvg&s"
       },
       {
         "name": "Bio Pesticide",
         "price": "300",
-        "image": "/assets/assert/fencing.jpg"
+        "image": "https://agriplexindia.com/cdn/shop/products/Multiplex-Baba_2.png?crop=center&height=720&v=1743242255&width=720"
       }
     ]
   }
