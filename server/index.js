@@ -620,8 +620,8 @@ app.post('/api/send-email', async (req, res) => {
       console.log('📧 Attempting to send email...');
       const nodemailer = require('nodemailer');
       
-      // Use port 587 with STARTTLS for Render compatibility (port 465 is blocked)
-      const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
+      // Try port 465 with SSL on Render (587 is often blocked)
+      const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
       const smtpSecure = smtpPort === 465; // true for 465, false for other ports
       
       console.log('📧 SMTP Config:', {
@@ -640,9 +640,14 @@ app.post('/api/send-email', async (req, res) => {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 10000,
-        socketTimeout: 30000
+        connectionTimeout: 15000, // 15 seconds
+        greetingTimeout: 15000,
+        socketTimeout: 45000,
+        // Additional TLS options for better compatibility
+        tls: {
+          rejectUnauthorized: false, // Allow self-signed certificates
+          minVersion: 'TLSv1.2'
+        }
       });
 
       // Format the email based on form type
