@@ -1,14 +1,31 @@
 const express = require('express');
-// Load environment variables from root .env file
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+const path = require('path');
+
+// Load environment variables from root .env file (if it exists)
+// On Render, use environment variables from dashboard instead
+const envPath = path.join(__dirname, '../.env');
+if (require('fs').existsSync(envPath)) {
+  require('dotenv').config({ path: envPath });
+  console.log('✅ Loaded .env file from:', envPath);
+} else {
+  console.log('ℹ️ No .env file found, using environment variables from system');
+}
+
 const cors = require('cors');
 const fs = require('fs');
-const path = require('path');
 const multer = require('multer');
 const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Log critical environment variables for debugging
+console.log('🔧 Environment check:');
+console.log('  NODE_ENV:', process.env.NODE_ENV);
+console.log('  PORT:', PORT);
+console.log('  SEND_EMAILS:', process.env.SEND_EMAILS);
+console.log('  SMTP_USER:', process.env.SMTP_USER ? '✅ Set' : '❌ Missing');
+console.log('  SMTP_PASS:', process.env.SMTP_PASS ? '✅ Set' : '❌ Missing');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
