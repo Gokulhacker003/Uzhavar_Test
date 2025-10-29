@@ -768,7 +768,14 @@ Received: ${new Date(now).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
     return res.json({ success: true, message: 'Submission stored (email sending disabled)', queued: true });
   } catch (error) {
     console.error('❌ Error in /api/send-email:', error);
-    return res.status(500).json({ error: 'Failed to process email request', details: error.message });
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    return res.status(500).json({ 
+      error: 'Failed to process email request', 
+      details: error.message,
+      errorType: error.name 
+    });
   }
 });
 
