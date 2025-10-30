@@ -21,7 +21,6 @@ import JoinUsPage from './pages/JoinUsPage';
 import LandPage from './pages/LandPage';
 import ConstructionPage from './pages/ConstructionPage';
 import OurServicesPage from './pages/OurServicesPage';
-import GraphicsPage from './pages/GraphicsPage';
 import ScrollToTop from './ScrollToTop';
 import { apiUrl } from './api';
 // ...existing code...
@@ -194,7 +193,6 @@ function App() {
               <li><NavLink to="/land" onClick={() => setIsMenuOpen(false)}>Land</NavLink></li>
               <li><NavLink to="/construction" onClick={() => setIsMenuOpen(false)}>Construction</NavLink></li>
               <li><NavLink to="/projects" onClick={() => setIsMenuOpen(false)}>Past Work</NavLink></li>
-              <li><NavLink to="/graphics" onClick={() => setIsMenuOpen(false)}>Aadhivelan Graphics</NavLink></li>
               <li><NavLink to="/join" onClick={() => setIsMenuOpen(false)}>Join Us</NavLink></li>
             </ul>
           </div>
@@ -228,7 +226,6 @@ function App() {
             <Route path="/our-services" element={<OurServicesPage />} />
             <Route path="/request-quote" element={<RequestQuotePage />} />
             <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/graphics" element={<GraphicsPage />} />
             <Route path="/join" element={<JoinUsPage />} />
             <Route path="/confirm-plan" element={<ConfirmPlan />} />
             
