@@ -4,7 +4,6 @@ import { authHelper } from './authHelper';
 import AdminCompaniesPage from './AdminCompaniesPage';
 import AdminPlansPage from './AdminPlansPage';
 import AdminSubmissionsPage from './AdminSubmissionsPage';
-import AdminUserDataPage from './AdminUserDataPage';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -18,8 +17,7 @@ export default function AdminDashboard() {
   const navItems = [
     { id: 'companies', label: 'Companies & Products', icon: '🏢', path: '/admin/companies' },
     { id: 'plans', label: 'Plans Management', icon: '📋', path: '/admin/plans' },
-    { id: 'submissions', label: 'Form Submissions', icon: '📨', path: '/admin/submissions' },
-    { id: 'userdata', label: 'User Data', icon: '👥', path: '/admin/userdata' }
+    { id: 'submissions', label: 'Form Submissions', icon: '📨', path: '/admin/submissions' }
   ];
 
   return (
@@ -151,7 +149,6 @@ export default function AdminDashboard() {
           <Route path="/companies" element={<AdminCompaniesPage onLogout={handleLogout} />} />
           <Route path="/plans" element={<AdminPlansPage onLogout={handleLogout} />} />
           <Route path="/submissions" element={<AdminSubmissionsPage onLogout={handleLogout} />} />
-          <Route path="/userdata" element={<AdminUserDataPage onLogout={handleLogout} />} />
         </Routes>
       </div>
     </div>

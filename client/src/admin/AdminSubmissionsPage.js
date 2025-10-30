@@ -5,15 +5,12 @@ export default function AdminSubmissionsPage() {
   const [subs, setSubs] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [password, setPassword] = useState('');
 
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
-      const headers = {};
-      if (password) headers['x-admin-key'] = password;
-      const res = await fetch(apiUrl('/api/submissions'), { headers });
+      const res = await fetch(apiUrl('/api/submissions'));
       if (!res.ok) {
         const txt = await res.text();
         throw new Error(txt || 'Failed to fetch submissions');
@@ -29,14 +26,13 @@ export default function AdminSubmissionsPage() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Admin — Submissions (protected)</h2>
+      <h2>Admin — Submissions</h2>
       <div style={{ marginBottom: 12 }}>
-        <input placeholder="Admin password" type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ marginRight: 8 }} />
         <button onClick={load} disabled={loading}>{loading ? 'Loading...' : 'Load Submissions'}</button>
       </div>
       {error && <div style={{ color: 'red' }}>Error: {error}</div>}
       {!subs || subs.length === 0 ? (
-        <div>No submissions found or not authorized.</div>
+        <div>No submissions found.</div>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>

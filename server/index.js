@@ -481,56 +481,6 @@ app.delete('/api/companies/:companyId/products/:productIndex', (req, res) => {
   }
 });
 
-// Get user data
-app.get('/api/user-data', (req, res) => {
-  const userDataPath = path.join(__dirname, 'data', 'user-data.json');
-  
-  try {
-    if (fs.existsSync(userDataPath)) {
-      const data = fs.readFileSync(userDataPath, 'utf8');
-      const userData = JSON.parse(data);
-      res.json(userData);
-    } else {
-      res.json([]);
-    }
-  } catch (error) {
-    console.error('Error reading user data:', error);
-    res.status(500).json({ error: 'Failed to read user data' });
-  }
-});
-
-// Store user data
-app.post('/api/store-data', (req, res) => {
-  const userDataPath = path.join(__dirname, 'data', 'user-data.json');
-  
-  try {
-    // Ensure data directory exists
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir);
-    }
-    
-    let userData = [];
-    if (fs.existsSync(userDataPath)) {
-      const data = fs.readFileSync(userDataPath, 'utf8');
-      userData = JSON.parse(data);
-    }
-    
-    const newData = {
-      id: Date.now().toString(),
-      timestamp: new Date().toISOString(),
-      ...req.body
-    };
-    
-    userData.push(newData);
-    fs.writeFileSync(userDataPath, JSON.stringify(userData, null, 2));
-    res.json({ success: true, data: newData });
-  } catch (error) {
-    console.error('Error storing user data:', error);
-    res.status(500).json({ error: 'Failed to store user data' });
-  }
-});
-
 // Send email endpoint
 app.post('/api/send-email', async (req, res) => {
   console.log('📧 Email endpoint hit');
