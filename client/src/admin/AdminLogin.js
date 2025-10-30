@@ -12,7 +12,7 @@ export default function AdminLogin() {
   // Redirect if already authenticated
   useEffect(() => {
     if (authHelper.isAuthenticated()) {
-      navigate('/admin/plans', { replace: true });
+      navigate('/admin/companies', { replace: true });
     }
   }, [navigate]);
 
@@ -26,8 +26,8 @@ export default function AdminLogin() {
       const result = authHelper.login(username, password);
       
       if (result.success) {
-        // Redirect to plans page on successful login
-        navigate('/admin/plans', { replace: true });
+        // Redirect to admin dashboard on successful login
+        navigate('/admin/companies', { replace: true });
       } else {
         setError(result.error || "Invalid credentials");
         setLoading(false);
@@ -69,7 +69,7 @@ export default function AdminLogin() {
             Admin Login
           </h2>
           <p style={{ color: '#666', fontSize: '0.9em' }}>
-            Access Admin Plans Management
+            Access Uzhavar Admin Dashboard
           </p>
         </div>
 

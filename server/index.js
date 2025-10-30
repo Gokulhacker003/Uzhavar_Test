@@ -1,31 +1,14 @@
 const express = require('express');
-const path = require('path');
-
-// Load environment variables from root .env file (if it exists)
-// On Render, use environment variables from dashboard instead
-const envPath = path.join(__dirname, '../.env');
-if (require('fs').existsSync(envPath)) {
-  require('dotenv').config({ path: envPath });
-  console.log('✅ Loaded .env file from:', envPath);
-} else {
-  console.log('ℹ️ No .env file found, using environment variables from system');
-}
-
+// Load environment variables from root .env file
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const cors = require('cors');
 const fs = require('fs');
+const path = require('path');
 const multer = require('multer');
 const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-
-// Log critical environment variables for debugging
-console.log('🔧 Environment check:');
-console.log('  NODE_ENV:', process.env.NODE_ENV);
-console.log('  PORT:', PORT);
-console.log('  SEND_EMAILS:', process.env.SEND_EMAILS);
-console.log('  SMTP_USER:', process.env.SMTP_USER ? '✅ Set' : '❌ Missing');
-console.log('  SMTP_PASS:', process.env.SMTP_PASS ? '✅ Set' : '❌ Missing');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -620,8 +603,8 @@ app.post('/api/send-email', async (req, res) => {
       console.log('📧 Attempting to send email...');
       const nodemailer = require('nodemailer');
       
-      // Try port 465 with SSL on Render (587 is often blocked)
-      const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
+      // Use port 587 with STARTTLS for Render compatibility (port 465 is blocked)
+      const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
       const smtpSecure = smtpPort === 465; // true for 465, false for other ports
       
       console.log('📧 SMTP Config:', {
@@ -640,14 +623,9 @@ app.post('/api/send-email', async (req, res) => {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
-        connectionTimeout: 15000, // 15 seconds
-        greetingTimeout: 15000,
-        socketTimeout: 45000,
-        // Additional TLS options for better compatibility
-        tls: {
-          rejectUnauthorized: false, // Allow self-signed certificates
-          minVersion: 'TLSv1.2'
-        }
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 10000,
+        socketTimeout: 30000
       });
 
       // Format the email based on form type

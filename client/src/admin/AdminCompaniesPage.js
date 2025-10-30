@@ -10,23 +10,6 @@ export default function AdminCompaniesPage({ onLogout }) {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryType, setGalleryType] = useState('product'); // 'product' or 'logo'
 
-  // Simple password protection
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
-
-
-// Password for admin access
-const ADMIN_PASSWORD = 'uzhavar2025';
-
-  function handlePasswordSubmit(e) {
-    e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-    } else {
-      alert('Incorrect password!');
-    }
-  }
-
   function handleChange(e) {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
@@ -215,55 +198,25 @@ const ADMIN_PASSWORD = 'uzhavar2025';
   }
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetch(apiUrl('/api/companies'))
-        .then(r => r.json())
-        .then(data => setCompanies(data))
-        .catch(err => {
-          console.error('Failed to load companies', err);
-          setCompanies([]);
-        });
+    fetch(apiUrl('/api/companies'))
+      .then(r => r.json())
+      .then(data => setCompanies(data))
+      .catch(err => {
+        console.error('Failed to load companies', err);
+        setCompanies([]);
+      });
 
-      // Note: /api/images endpoint does not exist on backend, commenting out
-      // fetch(apiUrl('/api/images'))
-      //   .then(r => r.json())
-      //   .then(imgs => setImageGallery(imgs))
-      //   .catch(err => console.error('Failed to load images', err));
-    }
-  }, [isAuthenticated]);
-
-  if (!isAuthenticated) {
-    return (
-      <div style={{ maxWidth: 700, margin: '2rem auto', background: '#fff', borderRadius: 12, boxShadow: '0 2px 12px #eee', padding: '2rem' }}>
-        <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
-          <h2 style={{ color: '#388e3c' }}>Admin Login</h2>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Enter admin password"
-            style={{ padding: '0.7em', borderRadius: 8, border: '1px solid #ccc', width: '100%', maxWidth: 300 }}
-          />
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', maxWidth: 300 }}>Login</button>
-        </form>
-      </div>
-    );
-  }
+    // Note: /api/images endpoint does not exist on backend, commenting out
+    // fetch(apiUrl('/api/images'))
+    //   .then(r => r.json())
+    //   .then(imgs => setImageGallery(imgs))
+    //   .catch(err => console.error('Failed to load images', err));
+  }, []);
 
   return (
     <div style={{ maxWidth: 900, margin: '2rem auto', background: '#fff', borderRadius: 12, boxShadow: '0 2px 12px #eee', padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h2 style={{ color: '#388e3c', margin: 0 }}>Companies Management</h2>
-        <button 
-          className="btn btn-secondary" 
-          onClick={() => { 
-            setIsAuthenticated(false); 
-            setPassword(''); 
-            if (typeof onLogout === 'function') onLogout(); 
-          }}
-        >
-          Logout
-        </button>
       </div>
 
       {/* Add/Edit Company Form */}

@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ConfirmPlan from './ConfirmPlan';
-import AdminCompaniesPage from './admin/AdminCompaniesPage';
-import AdminSubmissionsPage from './admin/AdminSubmissionsPage';
-import AdminUserDataPage from './admin/AdminUserDataPage';
-import AdminPlansPage from './admin/AdminPlansPage';
+import AdminDashboard from './admin/AdminDashboard';
 import AdminLogin from './admin/AdminLogin';
 import ProtectedRoute from './admin/ProtectedRoute';
 import 'leaflet/dist/leaflet.css';
@@ -235,13 +232,10 @@ function App() {
             {/* Admin Login Route */}
             <Route path="/admin/login" element={<AdminLogin />} />
             
-            {/* Protected Admin Routes */}
-            <Route path="/admin/companies" element={<AdminCompaniesPage onLogout={() => { /* navigation fallback if needed */ }} />} />
-            <Route path="/admin/submissions" element={<AdminSubmissionsPage />} />
-            <Route path="/admin/user-data" element={<AdminUserDataPage />} />
-            <Route path="/admin/plans" element={
+            {/* Protected Admin Dashboard with all admin pages */}
+            <Route path="/admin/*" element={
               <ProtectedRoute>
-                <AdminPlansPage />
+                <AdminDashboard />
               </ProtectedRoute>
             } />
           </Routes>
