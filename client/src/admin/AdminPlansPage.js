@@ -20,14 +20,6 @@ function AdminPlansPage() {
   });
   const [featureInput, setFeatureInput] = useState('');
 
-  // Logout handler
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      authHelper.logout();
-      navigate('/admin/login', { replace: true });
-    }
-  };
-
   useEffect(() => {
     loadPlans();
   }, []);
@@ -159,38 +151,21 @@ function AdminPlansPage() {
             👤 Logged in as: <strong>{authHelper.getUser()?.username || 'Admin'}</strong>
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '1em' }}>
-          <button 
-            onClick={() => setShowForm(!showForm)}
-            style={{
-              background: showForm ? '#666' : '#388e3c',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold'
-            }}
-          >
-            {showForm ? 'Cancel' : '+ Add New Plan'}
-          </button>
-          <button 
-            onClick={handleLogout}
-            style={{
-              background: '#d32f2f',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold'
-            }}
-          >
-            🚪 Logout
-          </button>
-        </div>
+        <button 
+          onClick={() => setShowForm(!showForm)}
+          style={{
+            background: showForm ? '#666' : '#388e3c',
+            color: 'white',
+            border: 'none',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '1rem',
+            fontWeight: 'bold'
+          }}
+        >
+          {showForm ? 'Cancel' : '+ Add New Plan'}
+        </button>
       </div>
 
       {showForm && (
