@@ -588,36 +588,37 @@ app.post('/api/send-email', async (req, res) => {
     console.log('📧 Will send email:', sendEmails);
 
     if (sendEmails) {
-      console.log('📧 Attempting to send email...');
-      const nodemailer = require('nodemailer');
-      
-      // Use port 587 with STARTTLS for Render compatibility (port 465 is blocked)
-      const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
-      const smtpSecure = smtpPort === 465; // true for 465, false for other ports
-      
-      console.log('📧 SMTP Config:', {
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: smtpPort,
-        secure: smtpSecure,
-        user: process.env.SMTP_USER,
-        hasPassword: !!process.env.SMTP_PASS
-      });
-      
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: smtpPort,
-        secure: smtpSecure,
-        auth: {
+      try {
+        console.log('📧 Attempting to send email...');
+        const nodemailer = require('nodemailer');
+        
+        // Use port 587 with STARTTLS for Render compatibility (port 465 is blocked)
+        const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
+        const smtpSecure = smtpPort === 465; // true for 465, false for other ports
+        
+        console.log('📧 SMTP Config:', {
+          host: process.env.SMTP_HOST || 'smtp.gmail.com',
+          port: smtpPort,
+          secure: smtpSecure,
           user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 10000,
-        socketTimeout: 30000,
-        tls: {
-          rejectUnauthorized: false // Allow self-signed certificates in development
-        }
-      });
+          hasPassword: !!process.env.SMTP_PASS
+        });
+        
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST || 'smtp.gmail.com',
+          port: smtpPort,
+          secure: smtpSecure,
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+          connectionTimeout: 10000, // 10 seconds
+          greetingTimeout: 10000,
+          socketTimeout: 30000,
+          tls: {
+            rejectUnauthorized: false // Allow self-signed certificates in development
+          }
+        });
 
       // Format the email based on form type
       let htmlContent = '';
@@ -734,30 +735,40 @@ Received: ${new Date(now).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
       }
 
       console.log('📧 Sending email to:', toEmail);
-      const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
-        to: toEmail,
-        subject,
-        text: textContent,
-        html: htmlContent,
-      });
+        const info = await transporter.sendMail({
+          from: process.env.SMTP_FROM || process.env.SMTP_USER,
+          to: toEmail,
+          subject,
+          text: textContent,
+          html: htmlContent,
+        });
 
-      console.log('✅ Email sent successfully! Message ID:', info.messageId);
-      
-      // Log success (wrapped in try-catch)
-      try {
-        const emailLogPath = path.join(dataDir, 'email.log');
-        fs.appendFileSync(emailLogPath, `[${now}] sent to ${toEmail} | ${subject}\n`);
-      } catch (logError) {
-        console.warn('⚠️ Could not write to email.log:', logError.message);
+        console.log('✅ Email sent successfully! Message ID:', info.messageId);
+        
+        // Log success (wrapped in try-catch)
+        try {
+          const emailLogPath = path.join(dataDir, 'email.log');
+          fs.appendFileSync(emailLogPath, `[${now}] sent to ${toEmail} | ${subject}\n`);
+        } catch (logError) {
+          console.warn('⚠️ Could not write to email.log:', logError.message);
+        }
+        
+        return res.json({ success: true, message: 'Email sent successfully', queued: false });
+      } catch (emailError) {
+        // Email failed but submission was already saved
+        console.error('⚠️ Email sending failed but submission was saved:', emailError.message);
+        return res.json({ 
+          success: true, 
+          message: 'Order submitted successfully (email notification failed)', 
+          queued: true,
+          emailWarning: 'Email notification could not be sent'
+        });
       }
-      
-      return res.json({ success: true, message: 'Email sent', queued: false });
     }
 
     // If not sending, we still logged & stored
     console.log('ℹ️ Email sending disabled (SEND_EMAILS != true)');
-    return res.json({ success: true, message: 'Submission stored (email sending disabled)', queued: true });
+    return res.json({ success: true, message: 'Submission stored successfully', queued: true });
   } catch (error) {
     console.error('❌ Error in /api/send-email:', error);
     console.error('❌ Error name:', error.name);

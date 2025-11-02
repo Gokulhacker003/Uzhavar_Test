@@ -82,5 +82,29 @@
       "referer": "http://localhost:3000/join",
       "contentLength": "525"
     }
+  },
+  {
+    "receivedAt": "2025-11-02T07:31:16.819Z",
+    "toEmail": "mylearnings2715@gmail.com",
+    "subject": "Product Order from Gokul R",
+    "payload": {
+      "formType": "Product Order",
+      "name": "Gokul R",
+      "phone": "9043701793",
+      "email": "23bcs023@kprcas.ac.in",
+      "message": "Order for Sambar Powder from Aadhivelan Masala",
+      "extra": {
+        "Product Name": "Sambar Powder",
+        "Company": "Aadhivelan Masala",
+        "Quantity": 1,
+        "Delivery Address": "4/145 SELAKARICHAL,KARADIVAVI PO,COIMABATORE"
+      }
+    },
+    "metadata": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+      "ip": "127.0.0.1",
+      "referer": "http://localhost:3000/companies",
+      "contentLength": "307"
+    }
   }
 ]
