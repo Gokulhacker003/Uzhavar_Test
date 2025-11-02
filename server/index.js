@@ -7,6 +7,11 @@ const path = require('path');
 const multer = require('multer');
 const https = require('https');
 
+// Allow self-signed certificates in development
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -90,6 +95,39 @@ app.get('/api/submissions', (req, res) => {
   } catch (error) {
     console.error('Error reading submissions:', error);
     res.status(500).json({ error: 'Failed to read submissions' });
+  }
+});
+
+// Delete a submission by index
+app.delete('/api/submissions/:index', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  const submissionsPath = path.join(__dirname, 'data', 'submissions.json');
+  const index = parseInt(req.params.index);
+  
+  try {
+    if (!fs.existsSync(submissionsPath)) {
+      return res.status(404).json({ error: 'Submissions file not found' });
+    }
+    
+    const data = fs.readFileSync(submissionsPath, 'utf8');
+    let submissions = JSON.parse(data);
+    
+    if (index < 0 || index >= submissions.length) {
+      return res.status(400).json({ error: 'Invalid submission index' });
+    }
+    
+    // Remove the submission at the specified index
+    submissions.splice(index, 1);
+    
+    // Write back to file
+    fs.writeFileSync(submissionsPath, JSON.stringify(submissions, null, 2));
+    
+    console.log(`✅ Submission at index ${index} deleted successfully`);
+    res.json({ success: true, message: 'Submission deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting submission:', error);
+    res.status(500).json({ error: 'Failed to delete submission' });
   }
 });
 
@@ -575,7 +613,10 @@ app.post('/api/send-email', async (req, res) => {
         },
         connectionTimeout: 10000, // 10 seconds
         greetingTimeout: 10000,
-        socketTimeout: 30000
+        socketTimeout: 30000,
+        tls: {
+          rejectUnauthorized: false // Allow self-signed certificates in development
+        }
       });
 
       // Format the email based on form type
