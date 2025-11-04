@@ -279,7 +279,7 @@ function App() {
         </main>
   <footer className="footer">
           {/* Row 1 - Uzhavar Connect */}
-          <div className="footer-col">
+          <div className="footer-header">
             <h2>Uzhavar Connect</h2>
             <p>Manage Your Farm Like a Pro. From Soil to Sale.</p>
           </div>

@@ -698,3 +698,33 @@
     transform: none;
   }
 }
+
+/* ===== ADMIN BURGER MENU RESPONSIVE ===== */
+@media screen and (max-width: 768px) {
+  /* Show burger menu button on mobile */
+  .burger-menu-btn {
+    display: block !important;
+  }
+  
+  /* Hide desktop navigation on mobile */
+  .desktop-nav {
+    display: none !important;
+  }
+  
+  /* Hide desktop logout button on mobile */
+  .desktop-logout-btn {
+    display: none !important;
+  }
+}
+
+@media screen and (min-width: 769px) {
+  /* Hide mobile navigation on desktop */
+  .mobile-nav {
+    display: none !important;
+  }
+  
+  /* Hide burger menu button on desktop */
+  .burger-menu-btn {
+    display: none !important;
+  }
+}

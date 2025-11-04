@@ -224,60 +224,66 @@ export default function AdminCompaniesPage({ onLogout }) {
         <h3 style={{ marginTop: 0, color: '#495057' }}>
           {editingId ? 'Edit Company' : 'Add New Company'}
         </h3>
-        <form onSubmit={editingId ? handleUpdate : handleAdd} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'end' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Company Name *</label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Enter company name"
-              required
-              style={{ padding: '0.6em', borderRadius: 6, border: '1px solid #ccc', width: '100%' }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Description</label>
-            <input
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              placeholder="Enter company description"
-              style={{ padding: '0.6em', borderRadius: 6, border: '1px solid #ccc', width: '100%' }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Logo URL</label>
-            <input
-              name="logo"
-              value={form.logo}
-              onChange={handleChange}
-              placeholder="Enter logo URL"
-              style={{ padding: '0.6em', borderRadius: 6, border: '1px solid #ccc', width: '100%' }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Or Upload Logo</label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <form onSubmit={editingId ? handleUpdate : handleAdd}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#495057', fontSize: '0.9rem' }}>Company Name *</label>
               <input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoFileChange}
-                style={{ padding: '0.4em', borderRadius: 6, border: '1px solid #ccc', flex: 1 }}
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Enter company name"
+                required
+                style={{ padding: '0.7em', borderRadius: 6, border: '1px solid #ced4da', width: '100%', fontSize: '0.95rem', boxSizing: 'border-box' }}
               />
-              <button 
-                type="button" 
-                className="btn btn-secondary" 
-                onClick={() => { setGalleryType('logo'); setIsGalleryOpen(true); }}
-                style={{ fontSize: '0.9em', whiteSpace: 'nowrap' }}
-              >
-                Gallery
-              </button>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#495057', fontSize: '0.9rem' }}>Description</label>
+              <input
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="Enter company description"
+                style={{ padding: '0.7em', borderRadius: 6, border: '1px solid #ced4da', width: '100%', fontSize: '0.95rem', boxSizing: 'border-box' }}
+              />
             </div>
           </div>
-          <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <button type="submit" className="btn btn-primary">
-              {editingId ? 'Update Company' : 'Add Company'}
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#495057', fontSize: '0.9rem' }}>Logo URL</label>
+              <input
+                name="logo"
+                value={form.logo}
+                onChange={handleChange}
+                placeholder="Enter logo URL"
+                style={{ padding: '0.7em', borderRadius: 6, border: '1px solid #ced4da', width: '100%', fontSize: '0.95rem', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#495057', fontSize: '0.9rem' }}>Or Upload Logo</label>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'stretch' }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoFileChange}
+                  style={{ padding: '0.5em', borderRadius: 6, border: '1px solid #ced4da', flex: 1, fontSize: '0.9rem' }}
+                />
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => { setGalleryType('logo'); setIsGalleryOpen(true); }}
+                  style={{ fontSize: '0.9em', whiteSpace: 'nowrap', padding: '0.5em 1em' }}
+                >
+                  📁 Gallery
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingTop: '0.5rem' }}>
+            <button type="submit" className="btn btn-primary" style={{ padding: '0.7em 1.5em' }}>
+              {editingId ? '✓ Update Company' : '+ Add Company'}
             </button>
             {editingId && (
               <button 
@@ -287,17 +293,19 @@ export default function AdminCompaniesPage({ onLogout }) {
                   setEditingId(null);
                   setForm({ name: '', description: '', logo: '', logoFile: null });
                 }}
+                style={{ padding: '0.7em 1.5em' }}
               >
-                Cancel
+                ✕ Cancel
               </button>
             )}
             {/* Logo Preview */}
             {(form.logo || form.logoFile) && (
-              <div style={{ marginLeft: '1rem' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.85rem', color: '#6c757d' }}>Preview:</span>
                 <img 
                   src={form.logoFile ? URL.createObjectURL(form.logoFile) : form.logo} 
                   alt="Logo preview" 
-                  style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd' }} 
+                  style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 6, border: '2px solid #dee2e6' }} 
                 />
               </div>
             )}
@@ -427,8 +435,8 @@ export default function AdminCompaniesPage({ onLogout }) {
 
                   {/* Product Form */}
                   {activeProductCompanyId === company.id && (
-                    <div style={{ background: '#e9ecef', padding: '1rem', borderRadius: 6, border: '1px solid #ced4da' }}>
-                      <h5 style={{ marginTop: 0 }}>
+                    <div style={{ background: '#e9ecef', padding: '1.5rem', borderRadius: 6, border: '1px solid #ced4da', marginTop: '1rem' }}>
+                      <h5 style={{ marginTop: 0, color: '#495057' }}>
                         {productForm.editIndex !== null && productForm.editIndex !== undefined ? 'Edit Product' : 'Add New Product'}
                       </h5>
                       <form 
@@ -438,64 +446,70 @@ export default function AdminCompaniesPage({ onLogout }) {
                           } else {
                             handleAddProduct(e, company.id);
                           }
-                        }} 
-                        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'end' }}
+                        }}
                       >
-                        <div>
-                          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Product Name *</label>
-                          <input 
-                            name="name" 
-                            value={productForm.name} 
-                            onChange={handleProductChange} 
-                            placeholder="Product Name" 
-                            required 
-                            style={{ padding: '0.5em', borderRadius: 4, border: '1px solid #ccc', width: '100%' }} 
-                          />
-                        </div>
-                        <div>
-                          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Price</label>
-                          <input 
-                            name="price" 
-                            value={productForm.price} 
-                            onChange={handleProductChange} 
-                            placeholder="Price" 
-                            type="number" 
-                            min="0" 
-                            style={{ padding: '0.5em', borderRadius: 4, border: '1px solid #ccc', width: '100%' }} 
-                          />
-                        </div>
-                        <div>
-                          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Image URL</label>
-                          <input 
-                            name="image" 
-                            value={productForm.image} 
-                            onChange={handleProductChange} 
-                            placeholder="Image URL" 
-                            style={{ padding: '0.5em', borderRadius: 4, border: '1px solid #ccc', width: '100%' }} 
-                          />
-                        </div>
-                        <div>
-                          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Or Upload Image</label>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#495057', fontSize: '0.9rem' }}>Product Name *</label>
                             <input 
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleProductImageFileChange} 
-                              style={{ padding: '0.4em', borderRadius: 4, border: '1px solid #ccc', flex: 1 }} 
+                              name="name" 
+                              value={productForm.name} 
+                              onChange={handleProductChange} 
+                              placeholder="Product Name" 
+                              required 
+                              style={{ padding: '0.7em', borderRadius: 4, border: '1px solid #ced4da', width: '100%', fontSize: '0.95rem', boxSizing: 'border-box' }} 
                             />
-                            <button 
-                              type="button" 
-                              className="btn btn-secondary" 
-                              onClick={() => { setGalleryType('product'); setIsGalleryOpen(true); }}
-                              style={{ fontSize: '0.85em', whiteSpace: 'nowrap' }}
-                            >
-                              Gallery
-                            </button>
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#495057', fontSize: '0.9rem' }}>Price (₹)</label>
+                            <input 
+                              name="price" 
+                              value={productForm.price} 
+                              onChange={handleProductChange} 
+                              placeholder="0.00" 
+                              type="number" 
+                              min="0" 
+                              step="0.01"
+                              style={{ padding: '0.7em', borderRadius: 4, border: '1px solid #ced4da', width: '100%', fontSize: '0.95rem', boxSizing: 'border-box' }} 
+                            />
                           </div>
                         </div>
-                        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                          <button type="submit" className="btn btn-primary">
-                            {productForm.editIndex !== null && productForm.editIndex !== undefined ? 'Update Product' : 'Add Product'}
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#495057', fontSize: '0.9rem' }}>Image URL</label>
+                            <input 
+                              name="image" 
+                              value={productForm.image} 
+                              onChange={handleProductChange} 
+                              placeholder="Image URL" 
+                              style={{ padding: '0.7em', borderRadius: 4, border: '1px solid #ced4da', width: '100%', fontSize: '0.95rem', boxSizing: 'border-box' }} 
+                            />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#495057', fontSize: '0.9rem' }}>Or Upload Image</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'stretch' }}>
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                onChange={handleProductImageFileChange} 
+                                style={{ padding: '0.5em', borderRadius: 4, border: '1px solid #ced4da', flex: 1, fontSize: '0.9rem' }} 
+                              />
+                              <button 
+                                type="button" 
+                                className="btn btn-secondary" 
+                                onClick={() => { setGalleryType('product'); setIsGalleryOpen(true); }}
+                                style={{ fontSize: '0.85em', whiteSpace: 'nowrap', padding: '0.5em 1em' }}
+                              >
+                                📁 Gallery
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                          <button type="submit" className="btn btn-primary" style={{ padding: '0.7em 1.5em' }}>
+                            {productForm.editIndex !== null && productForm.editIndex !== undefined ? '✓ Update Product' : '+ Add Product'}
                           </button>
                           <button 
                             type="button" 
@@ -504,16 +518,18 @@ export default function AdminCompaniesPage({ onLogout }) {
                               setActiveProductCompanyId(null); 
                               setProductForm({ name: '', price: '', image: '', imageFile: null }); 
                             }}
+                            style={{ padding: '0.7em 1.5em' }}
                           >
-                            Cancel
+                            ✕ Cancel
                           </button>
                           {/* Image Preview */}
                           {(productForm.image || productForm.imageFile) && (
-                            <div style={{ marginLeft: '1rem' }}>
+                            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span style={{ fontSize: '0.85rem', color: '#6c757d' }}>Preview:</span>
                               <img 
                                 src={productForm.imageFile ? URL.createObjectURL(productForm.imageFile) : productForm.image} 
                                 alt="Product preview" 
-                                style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4, border: '1px solid #ddd' }} 
+                                style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4, border: '2px solid #ced4da' }} 
                               />
                             </div>
                           )}
