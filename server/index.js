@@ -546,6 +546,13 @@ app.post('/api/send-email', async (req, res) => {
     // 2) Send data to Google Sheets
     const googleSheetsUrl = process.env.GOOGLE_SHEETS_URL;
     const googleSheetsSecret = process.env.GOOGLE_SHEETS_SECRET;
+    
+    console.log('🔧 Google Sheets config check:', {
+      hasUrl: !!googleSheetsUrl,
+      hasSecret: !!googleSheetsSecret,
+      urlPreview: googleSheetsUrl ? googleSheetsUrl.substring(0, 50) + '...' : 'MISSING'
+    });
+    
     if (googleSheetsUrl) {
       try {
         console.log('📊 Sending data to Google Sheets...');
@@ -572,6 +579,12 @@ app.post('/api/send-email', async (req, res) => {
           pincode: extra['Pincode'] || ''
         };
 
+        console.log('📤 Sending sheet data:', { 
+          formType: sheetData.formType, 
+          name: sheetData.name,
+          hasSecret: !!sheetData.secret 
+        });
+
         const response = await fetch(googleSheetsUrl, {
           method: 'POST',
           headers: {
@@ -580,14 +593,28 @@ app.post('/api/send-email', async (req, res) => {
           body: JSON.stringify(sheetData)
         });
 
+        const responseText = await response.text();
+        console.log('📥 Google Sheets response status:', response.status);
+        console.log('📥 Google Sheets response:', responseText);
+
         if (response.ok) {
           console.log('✅ Data sent to Google Sheets successfully');
+          try {
+            const jsonResponse = JSON.parse(responseText);
+            console.log('✅ Parsed response:', jsonResponse);
+          } catch (e) {
+            console.log('⚠️ Response is not JSON:', responseText.substring(0, 200));
+          }
         } else {
-          console.warn('⚠️ Failed to send data to Google Sheets:', response.statusText);
+          console.error('❌ Failed to send data to Google Sheets:', response.status, response.statusText);
+          console.error('❌ Response body:', responseText);
         }
       } catch (sheetsError) {
-        console.error('⚠️ Error sending to Google Sheets:', sheetsError.message);
+        console.error('❌ Error sending to Google Sheets:', sheetsError.message);
+        console.error('❌ Error stack:', sheetsError.stack);
       }
+    } else {
+      console.warn('⚠️ GOOGLE_SHEETS_URL not configured - skipping Google Sheets save');
     }
 
     // 3) Check if email sending is enabled
