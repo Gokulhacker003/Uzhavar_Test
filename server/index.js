@@ -582,7 +582,54 @@ app.post('/api/send-email', async (req, res) => {
       console.warn('⚠️ Could not save submission to file (this is normal on Render):', fileError.message);
     }
 
-    // 2) Check if email sending is enabled
+    // 2) Send data to Google Sheets
+    const googleSheetsUrl = process.env.GOOGLE_SHEETS_URL;
+    const googleSheetsSecret = process.env.GOOGLE_SHEETS_SECRET;
+    if (googleSheetsUrl) {
+      try {
+        console.log('📊 Sending data to Google Sheets...');
+        
+        const extra = req.body?.extra || {};
+        const sheetData = {
+          secret: googleSheetsSecret || 'MY_APP_KEY',
+          timestamp: now,
+          formType: formType,
+          name: name,
+          email: req.body?.email || '',
+          phone: req.body?.phone || '',
+          subject: subject,
+          message: req.body?.message || '',
+          company: extra['Company'] || '',
+          location: extra['Location'] || extra['Land Location'] || '',
+          serviceType: extra['Service Type'] || '',
+          farmSize: extra['Farm Size'] || '',
+          productName: extra['Product Name'] || '',
+          quantity: extra['Quantity'] || '',
+          address: extra['Address'] || extra['Delivery Address'] || '',
+          city: extra['City'] || '',
+          state: extra['State'] || '',
+          pincode: extra['Pincode'] || ''
+        };
+
+        const response = await fetch(googleSheetsUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(sheetData)
+        });
+
+        if (response.ok) {
+          console.log('✅ Data sent to Google Sheets successfully');
+        } else {
+          console.warn('⚠️ Failed to send data to Google Sheets:', response.statusText);
+        }
+      } catch (sheetsError) {
+        console.error('⚠️ Error sending to Google Sheets:', sheetsError.message);
+      }
+    }
+
+    // 3) Check if email sending is enabled
     const sendEmails = String(process.env.SEND_EMAILS).toLowerCase() === 'true';
     console.log('📧 SEND_EMAILS env var:', process.env.SEND_EMAILS);
     console.log('📧 Will send email:', sendEmails);
