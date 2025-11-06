@@ -79,56 +79,97 @@ app.get('/api/hello', (req, res) => {
 });
 
 // Get all submissions
-app.get('/api/submissions', (req, res) => {
-  const fs = require('fs');
-  const path = require('path');
+app.get('/api/submissions', async (req, res) => {
+  console.log('📥 GET /api/submissions - Fetching submissions');
+  
+  const googleSheetsUrl = process.env.GOOGLE_SHEETS_URL;
+  const googleSheetsSecret = process.env.GOOGLE_SHEETS_SECRET;
+  
+  // Try Google Sheets first
+  if (googleSheetsUrl && googleSheetsSecret) {
+    try {
+      console.log('📊 Attempting to fetch from Google Sheets...');
+      const url = `${googleSheetsUrl}?secret=${encodeURIComponent(googleSheetsSecret)}`;
+      
+      const response = await fetch(url);
+      
+      if (response.ok) {
+        const responseText = await response.text();
+        
+        // Check if response is JSON
+        if (responseText.startsWith('{') || responseText.startsWith('[')) {
+          const result = JSON.parse(responseText);
+          
+          if (result.status === 'success') {
+            // Transform Google Sheets data to match AdminSubmissionsPage format
+            const submissions = (result.data || []).map(item => ({
+              receivedAt: item.timestamp,
+              toEmail: 'admin@uzhavar.com',
+              subject: item.subject || item.formType || 'No Subject',
+              payload: {
+                name: item.name,
+                email: item.email,
+                phone: item.phone,
+                message: item.message,
+                company: item.company,
+                location: item.location,
+                serviceType: item.serviceType,
+                farmSize: item.farmSize,
+                extra: {
+                  'Product Name': item.productName,
+                  'Quantity': item.quantity,
+                  'Address': item.address,
+                  'City': item.city,
+                  'State': item.state,
+                  'Pincode': item.pincode
+                }
+              },
+              metadata: {
+                source: 'google-sheets'
+              }
+            }));
+            
+            console.log(`✅ Successfully fetched ${submissions.length} submissions from Google Sheets`);
+            return res.json(submissions);
+          }
+        } else {
+          console.warn('⚠️ Google Sheets returned HTML instead of JSON - falling back to local file');
+        }
+      } else {
+        console.warn(`⚠️ Google Sheets returned ${response.status} - falling back to local file`);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching from Google Sheets:', error.message);
+      console.warn('⚠️ Falling back to local file');
+    }
+  }
+  
+  // Fallback to local file
+  console.log('📂 Reading from local submissions.json file');
   const submissionsPath = path.join(__dirname, 'data', 'submissions.json');
   
   try {
     if (fs.existsSync(submissionsPath)) {
       const data = fs.readFileSync(submissionsPath, 'utf8');
       const submissions = JSON.parse(data);
+      console.log(`✅ Loaded ${submissions.length} submissions from local file`);
       res.json(submissions);
     } else {
+      console.log('ℹ️ No local submissions file found - returning empty array');
       res.json([]);
     }
   } catch (error) {
-    console.error('Error reading submissions:', error);
+    console.error('❌ Error reading local submissions:', error);
     res.status(500).json({ error: 'Failed to read submissions' });
   }
 });
 
-// Delete a submission by index
+// Delete a submission - DISABLED (using Google Sheets now)
 app.delete('/api/submissions/:index', (req, res) => {
-  const fs = require('fs');
-  const path = require('path');
-  const submissionsPath = path.join(__dirname, 'data', 'submissions.json');
-  const index = parseInt(req.params.index);
-  
-  try {
-    if (!fs.existsSync(submissionsPath)) {
-      return res.status(404).json({ error: 'Submissions file not found' });
-    }
-    
-    const data = fs.readFileSync(submissionsPath, 'utf8');
-    let submissions = JSON.parse(data);
-    
-    if (index < 0 || index >= submissions.length) {
-      return res.status(400).json({ error: 'Invalid submission index' });
-    }
-    
-    // Remove the submission at the specified index
-    submissions.splice(index, 1);
-    
-    // Write back to file
-    fs.writeFileSync(submissionsPath, JSON.stringify(submissions, null, 2));
-    
-    console.log(`✅ Submission at index ${index} deleted successfully`);
-    res.json({ success: true, message: 'Submission deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting submission:', error);
-    res.status(500).json({ error: 'Failed to delete submission' });
-  }
+  console.log('⚠️ DELETE /api/submissions - Feature disabled (using Google Sheets)');
+  res.status(501).json({ 
+    error: 'Delete feature not available. Please delete directly from Google Sheets.' 
+  });
 });
 
 // Get all companies

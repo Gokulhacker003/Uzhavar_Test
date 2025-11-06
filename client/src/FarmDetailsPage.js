@@ -48,13 +48,17 @@ export default function FarmDetailsPage() {
     }
     setSubmitted(true);
     
-    // Prepare email data
+    // Prepare email data with ALL fields for Google Sheets
     const emailData = {
       formType: 'Upload Your Farm Details',
       name: form.ownerName,
-      message: `Farm details submitted`,
+      phone: form.contact,
+      email: '', // No email field in this form
+      message: `Farm details submitted by ${form.ownerName}`,
       extra: {
         'Owner Name': form.ownerName,
+        'Phone Number': form.contact,
+        'Address': form.address,
         'Farm Location': marker ? `Lat: ${marker.lat}, Lng: ${marker.lng}` : 'Not selected',
         'Area (acres)': form.area,
         'Crop Planted': form.crop || 'Not specified',
