@@ -559,6 +559,9 @@ app.post('/api/send-email', async (req, res) => {
         
         const extra = req.body?.extra || {};
         
+        // DEBUG: Log all extra fields to see what we're receiving
+        console.log('🔍 DEBUG - Extra fields received:', JSON.stringify(extra, null, 2));
+        
         // Standardize field extraction - handle all possible field name variations
         const sheetData = {
           secret: googleSheetsSecret || 'MY_APP_KEY',
@@ -584,6 +587,9 @@ app.post('/api/send-email', async (req, res) => {
         console.log('📤 Sending sheet data:', { 
           formType: sheetData.formType, 
           name: sheetData.name,
+          farmSize: sheetData.farmSize,
+          location: sheetData.location,
+          productName: sheetData.productName,
           hasSecret: !!sheetData.secret 
         });
 
