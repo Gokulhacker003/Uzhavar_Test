@@ -558,25 +558,27 @@ app.post('/api/send-email', async (req, res) => {
         console.log('📊 Sending data to Google Sheets...');
         
         const extra = req.body?.extra || {};
+        
+        // Standardize field extraction - handle all possible field name variations
         const sheetData = {
           secret: googleSheetsSecret || 'MY_APP_KEY',
           timestamp: now,
           formType: formType,
           name: name,
-          email: req.body?.email || '',
-          phone: req.body?.phone || '',
+          email: req.body?.email || extra['Email'] || '',
+          phone: req.body?.phone || extra['Phone'] || extra['Phone Number'] || '',
           subject: subject,
-          message: req.body?.message || '',
-          company: extra['Company'] || '',
-          location: extra['Location'] || extra['Land Location'] || '',
-          serviceType: extra['Service Type'] || '',
-          farmSize: extra['Farm Size'] || '',
-          productName: extra['Product Name'] || '',
-          quantity: extra['Quantity'] || '',
-          address: extra['Address'] || extra['Delivery Address'] || '',
-          city: extra['City'] || '',
-          state: extra['State'] || '',
-          pincode: extra['Pincode'] || ''
+          message: req.body?.message || extra['Message'] || extra['Description'] || '',
+          company: extra['Company'] || extra['company'] || '',
+          location: extra['Location'] || extra['location'] || extra['Land Location'] || extra['Farm Location'] || '',
+          serviceType: extra['Service Type'] || extra['serviceType'] || extra['Project Type'] || '',
+          farmSize: extra['Farm Size'] || extra['farmSize'] || extra['Area (acres)'] || '',
+          productName: extra['Product Name'] || extra['productName'] || extra['Uploaded File'] || extra['Crop Planted'] || '',
+          quantity: extra['Quantity'] || extra['quantity'] || '',
+          address: extra['Address'] || extra['address'] || extra['Delivery Address'] || '',
+          city: extra['City'] || extra['city'] || '',
+          state: extra['State'] || extra['state'] || '',
+          pincode: extra['Pincode'] || extra['pincode'] || ''
         };
 
         console.log('📤 Sending sheet data:', { 
