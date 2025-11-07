@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const https = require('https');
+const db = require('./db'); // Database connection
 
 // Allow self-signed certificates in development
 if (process.env.NODE_ENV !== 'production') {
@@ -173,40 +174,86 @@ app.delete('/api/submissions/:index', (req, res) => {
 });
 
 // Get all companies
-app.get('/api/companies', (req, res) => {
+app.get('/api/companies', async (req, res) => {
   console.log('📦 GET /api/companies - Request received');
-  const companiesPath = path.join(__dirname, 'data', 'companies.json');
-  console.log('📂 Looking for file at:', companiesPath);
   
   try {
+    // If database is configured, use it
+    if (db.isConfigured) {
+      const result = await db.query(`
+        SELECT c.id, c.name, c.description, c.logo,
+               json_agg(json_build_object('name', p.name, 'price', p.price, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
+        FROM companies c
+        LEFT JOIN products p ON c.id = p.company_id
+        GROUP BY c.id, c.name, c.description, c.logo
+        ORDER BY c.id
+      `);
+      
+      const companies = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        logo: row.logo,
+        products: row.products || []
+      }));
+      
+      console.log('✅ Companies loaded from Supabase:', companies.length);
+      return res.json(companies);
+    }
+    
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback');
+    const companiesPath = path.join(__dirname, 'data', 'companies.json');
+    
     if (fs.existsSync(companiesPath)) {
       const data = fs.readFileSync(companiesPath, 'utf8');
       const companies = JSON.parse(data);
-      console.log('✅ Companies loaded:', companies.length);
+      console.log('✅ Companies loaded from file:', companies.length);
       res.json(companies);
     } else {
       console.log('⚠️ Companies file not found');
       res.json([]);
     }
   } catch (error) {
-    console.error('❌ Error reading companies:', error);
+    console.error('❌ Error reading companies:', error.message);
     res.status(500).json({ error: 'Failed to read companies' });
   }
 });
 
 // Create new company
-app.post('/api/companies', upload.single('logo'), (req, res) => {
+app.post('/api/companies', upload.single('logo'), async (req, res) => {
   console.log('➕ POST /api/companies - Creating new company');
   console.log('📝 Request body:', req.body);
   console.log('📝 File uploaded:', req.file ? req.file.filename : 'none');
   
-  const companiesPath = path.join(__dirname, 'data', 'companies.json');
+  const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo || '');
   
   try {
-    // Ensure data directory exists
+    // If database is configured, use it
+    if (db.isConfigured) {
+      const result = await db.query(
+        'INSERT INTO companies (name, description, logo) VALUES ($1, $2, $3) RETURNING *',
+        [req.body.name, req.body.description || '', logoPath]
+      );
+      
+      const newCompany = {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        description: result.rows[0].description,
+        logo: result.rows[0].logo,
+        products: []
+      };
+      
+      console.log('✅ Company created successfully in Supabase');
+      return res.json(newCompany);
+    }
+    
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback');
+    const companiesPath = path.join(__dirname, 'data', 'companies.json');
     const dataDir = path.join(__dirname, 'data');
+    
     if (!fs.existsSync(dataDir)) {
-      console.log('⚠️ Data directory does not exist, creating it...');
       fs.mkdirSync(dataDir, { recursive: true });
     }
     
@@ -214,15 +261,10 @@ app.post('/api/companies', upload.single('logo'), (req, res) => {
     if (fs.existsSync(companiesPath)) {
       const data = fs.readFileSync(companiesPath, 'utf8');
       companies = JSON.parse(data);
-      console.log('📊 Existing companies:', companies.length);
-    } else {
-      console.log('⚠️ Companies file does not exist, will create new one');
     }
     
-    const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo || '');
-    
     const newCompany = {
-      id: Date.now().toString(),
+      id: Date.now(),
       name: req.body.name,
       description: req.body.description || '',
       logo: logoPath,
@@ -230,340 +272,397 @@ app.post('/api/companies', upload.single('logo'), (req, res) => {
     };
     
     companies.push(newCompany);
-    console.log('💾 Writing new company to file...');
+    fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
     
-    try {
-      fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
-      console.log('✅ Company created successfully');
-    } catch (writeError) {
-      console.warn('⚠️ Could not write to file (this is normal on Render):', writeError.message);
-    }
-    
+    console.log('✅ Company created successfully in JSON file');
     res.json(newCompany);
   } catch (error) {
     console.error('❌ Error creating company:', error);
-    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to create company', details: error.message });
   }
 });
 
 // Update company
-app.put('/api/companies/:id', upload.single('logo'), (req, res) => {
+app.put('/api/companies/:id', upload.single('logo'), async (req, res) => {
   console.log('📝 PUT /api/companies/:id - Request received');
   console.log('📝 Company ID:', req.params.id);
   console.log('📝 Request body:', req.body);
-  console.log('📝 File uploaded:', req.file ? req.file.filename : 'none');
   
-  const companiesPath = path.join(__dirname, 'data', 'companies.json');
-  const { id } = req.params;
+  const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo !== undefined ? req.body.logo : undefined);
   
   try {
-    // Ensure data directory exists
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      console.log('⚠️ Data directory does not exist, creating it...');
-      fs.mkdirSync(dataDir, { recursive: true });
+    // If database is configured, use it
+    if (db.isConfigured) {
+      let updateQuery = 'UPDATE companies SET name = $1, description = $2';
+      let params = [req.body.name, req.body.description || ''];
+      let paramIndex = 3;
+      
+      if (logoPath !== undefined) {
+        updateQuery += `, logo = $${paramIndex}`;
+        params.push(logoPath);
+        paramIndex++;
+      }
+      
+      updateQuery += `, updated_at = CURRENT_TIMESTAMP WHERE id = $${paramIndex} RETURNING *`;
+      params.push(req.params.id);
+      
+      const result = await db.query(updateQuery, params);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Company not found' });
+      }
+      
+      const productsResult = await db.query(
+        'SELECT name, price, image FROM products WHERE company_id = $1',
+        [req.params.id]
+      );
+      
+      const updatedCompany = {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        description: result.rows[0].description,
+        logo: result.rows[0].logo,
+        products: productsResult.rows
+      };
+      
+      console.log('✅ Company updated successfully in Supabase');
+      return res.json(updatedCompany);
     }
     
-    if (fs.existsSync(companiesPath)) {
-      console.log('✅ Companies file exists, reading...');
-      const data = fs.readFileSync(companiesPath, 'utf8');
-      let companies = JSON.parse(data);
-      console.log('📊 Total companies:', companies.length);
-      
-      // Handle both string and number IDs
-      const index = companies.findIndex(c => c.id == id);
-      console.log('🔍 Company index found:', index);
-      
-      if (index !== -1) {
-        const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo !== undefined ? req.body.logo : companies[index].logo);
-        
-        // Preserve products array when updating company
-        const updatedCompany = { 
-          ...companies[index], 
-          name: req.body.name,
-          description: req.body.description || '',
-          logo: logoPath,
-          products: companies[index].products || []
-        };
-        
-        companies[index] = updatedCompany;
-        console.log('💾 Writing updated company to file...');
-        
-        try {
-          fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
-          console.log('✅ Company updated successfully');
-          res.json(updatedCompany);
-        } catch (writeError) {
-          console.error('❌ Error writing to file:', writeError);
-          // If file system is read-only (like on Render), still return success
-          // but log the warning
-          console.warn('⚠️ File system may be read-only (this is normal on Render)');
-          res.json(updatedCompany);
-        }
-      } else {
-        console.log('❌ Company not found with ID:', id);
-        res.status(404).json({ error: 'Company not found' });
-      }
-    } else {
-      console.log('❌ Companies file not found at:', companiesPath);
-      res.status(404).json({ error: 'Companies file not found' });
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback');
+    const companiesPath = path.join(__dirname, 'data', 'companies.json');
+    
+    if (!fs.existsSync(companiesPath)) {
+      return res.status(404).json({ error: 'Companies file not found' });
     }
+    
+    const data = fs.readFileSync(companiesPath, 'utf8');
+    let companies = JSON.parse(data);
+    
+    const index = companies.findIndex(c => c.id == req.params.id);
+    
+    if (index === -1) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+    
+    const updatedCompany = {
+      ...companies[index],
+      name: req.body.name,
+      description: req.body.description || '',
+      logo: logoPath !== undefined ? logoPath : companies[index].logo,
+      products: companies[index].products || []
+    };
+    
+    companies[index] = updatedCompany;
+    fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+    
+    console.log('✅ Company updated successfully in JSON file');
+    res.json(updatedCompany);
   } catch (error) {
     console.error('❌ Error updating company:', error);
-    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to update company', details: error.message });
   }
 });
 
 // Delete company
-app.delete('/api/companies/:id', (req, res) => {
+app.delete('/api/companies/:id', async (req, res) => {
   console.log('🗑️ DELETE /api/companies/:id - Deleting company');
   console.log('📝 Company ID:', req.params.id);
   
-  const companiesPath = path.join(__dirname, 'data', 'companies.json');
-  const { id } = req.params;
-  
   try {
-    // Ensure data directory exists
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      console.log('⚠️ Data directory does not exist, creating it...');
-      fs.mkdirSync(dataDir, { recursive: true });
+    // If database is configured, use it
+    if (db.isConfigured) {
+      const result = await db.query(
+        'DELETE FROM companies WHERE id = $1 RETURNING id',
+        [req.params.id]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Company not found' });
+      }
+      
+      console.log('✅ Company deleted successfully from Supabase');
+      return res.json({ message: 'Company deleted' });
     }
     
-    if (fs.existsSync(companiesPath)) {
-      console.log('✅ Companies file exists, reading...');
-      const data = fs.readFileSync(companiesPath, 'utf8');
-      let companies = JSON.parse(data);
-      
-      const beforeCount = companies.length;
-      // Handle both string and number IDs
-      companies = companies.filter(c => c.id != id);
-      const afterCount = companies.length;
-      
-      console.log('📊 Companies before:', beforeCount, 'after:', afterCount);
-      
-      if (beforeCount > afterCount) {
-        console.log('💾 Writing updated companies to file...');
-        
-        try {
-          fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
-          console.log('✅ Company deleted successfully');
-        } catch (writeError) {
-          console.warn('⚠️ Could not write to file (this is normal on Render):', writeError.message);
-        }
-        
-        res.json({ message: 'Company deleted' });
-      } else {
-        console.log('❌ Company not found with ID:', id);
-        res.status(404).json({ error: 'Company not found' });
-      }
-    } else {
-      console.log('❌ Companies file not found at:', companiesPath);
-      res.status(404).json({ error: 'Companies file not found' });
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback');
+    const companiesPath = path.join(__dirname, 'data', 'companies.json');
+    
+    if (!fs.existsSync(companiesPath)) {
+      return res.status(404).json({ error: 'Companies file not found' });
     }
+    
+    const data = fs.readFileSync(companiesPath, 'utf8');
+    let companies = JSON.parse(data);
+    
+    const beforeCount = companies.length;
+    companies = companies.filter(c => c.id != req.params.id);
+    
+    if (beforeCount === companies.length) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+    
+    fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+    
+    console.log('✅ Company deleted successfully from JSON file');
+    res.json({ message: 'Company deleted' });
   } catch (error) {
     console.error('❌ Error deleting company:', error);
-    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to delete company', details: error.message });
   }
 });
 
 // Add product to company
-app.post('/api/companies/:companyId/products', upload.single('image'), (req, res) => {
+app.post('/api/companies/:companyId/products', upload.single('image'), async (req, res) => {
   console.log('➕ POST /api/companies/:companyId/products - Adding product');
   console.log('📝 Company ID:', req.params.companyId);
   console.log('📝 Request body:', req.body);
-  console.log('📝 File uploaded:', req.file ? req.file.filename : 'none');
   
-  const companiesPath = path.join(__dirname, 'data', 'companies.json');
-  const { companyId } = req.params;
+  const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image || '');
   
   try {
-    // Ensure data directory exists
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      console.log('⚠️ Data directory does not exist, creating it...');
-      fs.mkdirSync(dataDir, { recursive: true });
+    // If database is configured, use it
+    if (db.isConfigured) {
+      await db.query(
+        'INSERT INTO products (company_id, name, price, image) VALUES ($1, $2, $3, $4)',
+        [req.params.companyId, req.body.name, req.body.price, imagePath]
+      );
+      
+      const result = await db.query(`
+        SELECT c.id, c.name, c.description, c.logo,
+               json_agg(json_build_object('name', p.name, 'price', p.price, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
+        FROM companies c
+        LEFT JOIN products p ON c.id = p.company_id
+        WHERE c.id = $1
+        GROUP BY c.id, c.name, c.description, c.logo
+      `, [req.params.companyId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Company not found' });
+      }
+      
+      const company = {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        description: result.rows[0].description,
+        logo: result.rows[0].logo,
+        products: result.rows[0].products || []
+      };
+      
+      console.log('✅ Product added successfully to Supabase');
+      return res.json(company);
     }
     
-    if (fs.existsSync(companiesPath)) {
-      console.log('✅ Companies file exists, reading...');
-      const data = fs.readFileSync(companiesPath, 'utf8');
-      let companies = JSON.parse(data);
-      
-      // Handle both string and number IDs
-      const company = companies.find(c => c.id == companyId);
-      console.log('🔍 Company found:', company ? company.name : 'not found');
-      
-      if (company) {
-        if (!company.products) company.products = [];
-        
-        const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image || '');
-        
-        const newProduct = {
-          name: req.body.name,
-          price: req.body.price,
-          image: imagePath
-        };
-        
-        company.products.push(newProduct);
-        console.log('💾 Writing updated company to file...');
-        
-        try {
-          fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
-          console.log('✅ Product added successfully');
-        } catch (writeError) {
-          console.warn('⚠️ Could not write to file (this is normal on Render):', writeError.message);
-        }
-        
-        res.json(company);
-      } else {
-        console.log('❌ Company not found with ID:', companyId);
-        res.status(404).json({ error: 'Company not found' });
-      }
-    } else {
-      console.log('❌ Companies file not found at:', companiesPath);
-      res.status(404).json({ error: 'Companies file not found' });
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback');
+    const companiesPath = path.join(__dirname, 'data', 'companies.json');
+    
+    if (!fs.existsSync(companiesPath)) {
+      return res.status(404).json({ error: 'Companies file not found' });
     }
+    
+    const data = fs.readFileSync(companiesPath, 'utf8');
+    let companies = JSON.parse(data);
+    
+    const company = companies.find(c => c.id == req.params.companyId);
+    
+    if (!company) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+    
+    if (!company.products) company.products = [];
+    
+    const newProduct = {
+      name: req.body.name,
+      price: req.body.price,
+      image: imagePath
+    };
+    
+    company.products.push(newProduct);
+    fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+    
+    console.log('✅ Product added successfully to JSON file');
+    res.json(company);
   } catch (error) {
     console.error('❌ Error adding product:', error);
-    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to add product', details: error.message });
   }
 });
 
 // Update product in company
-app.put('/api/companies/:companyId/products/:productIndex', upload.single('image'), (req, res) => {
+app.put('/api/companies/:companyId/products/:productIndex', upload.single('image'), async (req, res) => {
   console.log('📝 PUT /api/companies/:companyId/products/:productIndex - Updating product');
   console.log('📝 Company ID:', req.params.companyId);
   console.log('📝 Product Index:', req.params.productIndex);
-  console.log('📝 Request body:', req.body);
-  console.log('📝 File uploaded:', req.file ? req.file.filename : 'none');
   
-  const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { companyId, productIndex } = req.params;
+  const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image !== undefined ? req.body.image : undefined);
   
   try {
-    // Ensure data directory exists
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      console.log('⚠️ Data directory does not exist, creating it...');
-      fs.mkdirSync(dataDir, { recursive: true });
+    // If database is configured, use it
+    if (db.isConfigured) {
+      const getResult = await db.query(`
+        SELECT id FROM products 
+        WHERE company_id = $1 
+        ORDER BY id LIMIT 1 OFFSET $2
+      `, [companyId, parseInt(productIndex)]);
+      
+      if (getResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      const productId = getResult.rows[0].id;
+      
+      let updateQuery = 'UPDATE products SET name = $1, price = $2';
+      let params = [req.body.name, req.body.price];
+      let paramIndex = 3;
+      
+      if (imagePath !== undefined) {
+        updateQuery += `, image = $${paramIndex}`;
+        params.push(imagePath);
+        paramIndex++;
+      }
+      
+      updateQuery += `, updated_at = CURRENT_TIMESTAMP WHERE id = $${paramIndex}`;
+      params.push(productId);
+      
+      await db.query(updateQuery, params);
+      
+      const result = await db.query(`
+        SELECT c.id, c.name, c.description, c.logo,
+               json_agg(json_build_object('name', p.name, 'price', p.price, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
+        FROM companies c
+        LEFT JOIN products p ON c.id = p.company_id
+        WHERE c.id = $1
+        GROUP BY c.id, c.name, c.description, c.logo
+      `, [companyId]);
+      
+      const company = {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        description: result.rows[0].description,
+        logo: result.rows[0].logo,
+        products: result.rows[0].products || []
+      };
+      
+      console.log('✅ Product updated successfully in Supabase');
+      return res.json(company);
     }
     
-    if (fs.existsSync(companiesPath)) {
-      console.log('✅ Companies file exists, reading...');
-      const data = fs.readFileSync(companiesPath, 'utf8');
-      let companies = JSON.parse(data);
-      
-      // Handle both string and number IDs
-      const company = companies.find(c => c.id == companyId);
-      const idx = parseInt(productIndex);
-      
-      console.log('🔍 Company found:', company ? company.name : 'not found');
-      console.log('🔍 Product index:', idx);
-      console.log('🔍 Products array length:', company?.products?.length || 0);
-      
-      if (company && company.products && company.products[idx] !== undefined) {
-        const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image !== undefined ? req.body.image : company.products[idx].image);
-        
-        const updatedProduct = {
-          name: req.body.name,
-          price: req.body.price,
-          image: imagePath
-        };
-        
-        company.products[idx] = updatedProduct;
-        console.log('💾 Writing updated company to file...');
-        
-        try {
-          fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
-          console.log('✅ Product updated successfully');
-        } catch (writeError) {
-          console.warn('⚠️ Could not write to file (this is normal on Render):', writeError.message);
-        }
-        
-        res.json(company);
-      } else {
-        console.log('❌ Company or product not found');
-        console.log('Company exists:', !!company);
-        console.log('Products array exists:', !!company?.products);
-        console.log('Product at index exists:', company?.products?.[idx] !== undefined);
-        res.status(404).json({ error: 'Company or product not found' });
-      }
-    } else {
-      console.log('❌ Companies file not found at:', companiesPath);
-      res.status(404).json({ error: 'Companies file not found' });
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback');
+    const companiesPath = path.join(__dirname, 'data', 'companies.json');
+    
+    if (!fs.existsSync(companiesPath)) {
+      return res.status(404).json({ error: 'Companies file not found' });
     }
+    
+    const data = fs.readFileSync(companiesPath, 'utf8');
+    let companies = JSON.parse(data);
+    
+    const company = companies.find(c => c.id == companyId);
+    const idx = parseInt(productIndex);
+    
+    if (!company || !company.products || company.products[idx] === undefined) {
+      return res.status(404).json({ error: 'Company or product not found' });
+    }
+    
+    company.products[idx] = {
+      name: req.body.name,
+      price: req.body.price,
+      image: imagePath !== undefined ? imagePath : company.products[idx].image
+    };
+    
+    fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+    
+    console.log('✅ Product updated successfully in JSON file');
+    res.json(company);
   } catch (error) {
     console.error('❌ Error updating product:', error);
-    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to update product', details: error.message });
   }
 });
 
 // Delete product from company
-app.delete('/api/companies/:companyId/products/:productIndex', (req, res) => {
+app.delete('/api/companies/:companyId/products/:productIndex', async (req, res) => {
   console.log('🗑️ DELETE /api/companies/:companyId/products/:productIndex - Deleting product');
   console.log('📝 Company ID:', req.params.companyId);
   console.log('📝 Product Index:', req.params.productIndex);
   
-  const companiesPath = path.join(__dirname, 'data', 'companies.json');
   const { companyId, productIndex } = req.params;
   
   try {
-    // Ensure data directory exists
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      console.log('⚠️ Data directory does not exist, creating it...');
-      fs.mkdirSync(dataDir, { recursive: true });
+    // If database is configured, use it
+    if (db.isConfigured) {
+      const getResult = await db.query(`
+        SELECT id FROM products 
+        WHERE company_id = $1 
+        ORDER BY id LIMIT 1 OFFSET $2
+      `, [companyId, parseInt(productIndex)]);
+      
+      if (getResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      const productId = getResult.rows[0].id;
+      await db.query('DELETE FROM products WHERE id = $1', [productId]);
+      
+      const result = await db.query(`
+        SELECT c.id, c.name, c.description, c.logo,
+               json_agg(json_build_object('name', p.name, 'price', p.price, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
+        FROM companies c
+        LEFT JOIN products p ON c.id = p.company_id
+        WHERE c.id = $1
+        GROUP BY c.id, c.name, c.description, c.logo
+      `, [companyId]);
+      
+      const company = {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        description: result.rows[0].description,
+        logo: result.rows[0].logo,
+        products: result.rows[0].products || []
+      };
+      
+      console.log('✅ Product deleted successfully from Supabase');
+      return res.json(company);
     }
     
-    if (fs.existsSync(companiesPath)) {
-      console.log('✅ Companies file exists, reading...');
-      const data = fs.readFileSync(companiesPath, 'utf8');
-      let companies = JSON.parse(data);
-      
-      // Handle both string and number IDs
-      const company = companies.find(c => c.id == companyId);
-      const idx = parseInt(productIndex);
-      
-      console.log('🔍 Company found:', company ? company.name : 'not found');
-      console.log('🔍 Product index:', idx);
-      
-      if (company && company.products && company.products[idx] !== undefined) {
-        company.products.splice(idx, 1);
-        console.log('💾 Writing updated company to file...');
-        
-        try {
-          fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
-          console.log('✅ Product deleted successfully');
-        } catch (writeError) {
-          console.warn('⚠️ Could not write to file (this is normal on Render):', writeError.message);
-        }
-        
-        res.json(company);
-      } else {
-        console.log('❌ Company or product not found');
-        res.status(404).json({ error: 'Company or product not found' });
-      }
-    } else {
-      console.log('❌ Companies file not found at:', companiesPath);
-      res.status(404).json({ error: 'Companies file not found' });
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback');
+    const companiesPath = path.join(__dirname, 'data', 'companies.json');
+    
+    if (!fs.existsSync(companiesPath)) {
+      return res.status(404).json({ error: 'Companies file not found' });
     }
+    
+    const data = fs.readFileSync(companiesPath, 'utf8');
+    let companies = JSON.parse(data);
+    
+    const company = companies.find(c => c.id == companyId);
+    const idx = parseInt(productIndex);
+    
+    if (!company || !company.products || company.products[idx] === undefined) {
+      return res.status(404).json({ error: 'Company or product not found' });
+    }
+    
+    company.products.splice(idx, 1);
+    fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
+    
+    console.log('✅ Product deleted successfully from JSON file');
+    res.json(company);
   } catch (error) {
     console.error('❌ Error deleting product:', error);
-    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to delete product', details: error.message });
   }
 });
 
 // Send email endpoint
 app.post('/api/send-email', async (req, res) => {
-  console.log('📧 Email endpoint hit');
-  console.log('📧 Request body:', JSON.stringify(req.body, null, 2));
+  console.log('� Form submission endpoint hit');
+  console.log('� Request body:', JSON.stringify(req.body, null, 2));
   
   try {
     // Basic phone validation when provided
@@ -576,15 +675,11 @@ app.post('/api/send-email', async (req, res) => {
     const now = new Date().toISOString();
     const formType = req.body?.formType || 'Form Submission';
     const name = req.body?.name || req.body?.payload?.name || 'Unknown';
-    const toEmail = process.env.SMTP_USER || 'mylearnings2715@gmail.com';
     const subject = req.body?.subject || `${formType} from ${name}`;
 
-    console.log('📧 Email details:', { formType, name, toEmail, subject });
+    console.log('� Form submission received:', { formType, name, subject });
 
-    // 1) Local file saving DISABLED - using Google Sheets instead
-    console.log('ℹ️ Skipping local file save - data will be sent to Google Sheets');
-
-    // 2) Send data to Google Sheets
+    // Send data to Google Sheets for storage
     const googleSheetsUrl = process.env.GOOGLE_SHEETS_URL;
     const googleSheetsSecret = process.env.GOOGLE_SHEETS_SECRET;
     
@@ -666,193 +761,9 @@ app.post('/api/send-email', async (req, res) => {
       console.warn('⚠️ GOOGLE_SHEETS_URL not configured - skipping Google Sheets save');
     }
 
-    // 3) Check if email sending is enabled
-    const sendEmails = String(process.env.SEND_EMAILS).toLowerCase() === 'true';
-    console.log('📧 SEND_EMAILS env var:', process.env.SEND_EMAILS);
-    console.log('📧 Will send email:', sendEmails);
-
-    if (sendEmails) {
-      try {
-        console.log('📧 Attempting to send email...');
-        const nodemailer = require('nodemailer');
-        
-        // Use port 587 with STARTTLS for Render compatibility (port 465 is blocked)
-        const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
-        const smtpSecure = smtpPort === 465; // true for 465, false for other ports
-        
-        console.log('📧 SMTP Config:', {
-          host: process.env.SMTP_HOST || 'smtp.gmail.com',
-          port: smtpPort,
-          secure: smtpSecure,
-          user: process.env.SMTP_USER,
-          hasPassword: !!process.env.SMTP_PASS
-        });
-        
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST || 'smtp.gmail.com',
-          port: smtpPort,
-          secure: smtpSecure,
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-          },
-          connectionTimeout: 10000, // 10 seconds
-          greetingTimeout: 10000,
-          socketTimeout: 30000,
-          tls: {
-            rejectUnauthorized: false // Allow self-signed certificates in development
-          }
-        });
-
-      // Format the email based on form type
-      let htmlContent = '';
-      let textContent = '';
-
-      if (formType === 'Product Order') {
-        const extra = req.body?.extra || {};
-        const phone = req.body?.phone || 'N/A';
-        const email = req.body?.email || 'N/A';
-        const orderDate = new Date(now).toLocaleString('en-IN', { 
-          timeZone: 'Asia/Kolkata',
-          dateStyle: 'medium',
-          timeStyle: 'short'
-        });
-
-        htmlContent = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-            <div style="background-color: #4CAF50; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; font-size: 24px;">📦 New Product Order</h1>
-            </div>
-            
-            <div style="background-color: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-              <h2 style="color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px;">Customer Details</h2>
-              <table style="width: 100%; margin-bottom: 20px;">
-                <tr><td style="padding: 8px 0; color: #666;"><strong>Name:</strong></td><td style="padding: 8px 0;">${name}</td></tr>
-                <tr><td style="padding: 8px 0; color: #666;"><strong>Phone:</strong></td><td style="padding: 8px 0;">${phone}</td></tr>
-                <tr><td style="padding: 8px 0; color: #666;"><strong>Email:</strong></td><td style="padding: 8px 0;">${email}</td></tr>
-              </table>
-
-              <h2 style="color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; margin-top: 30px;">Order Details</h2>
-              <table style="width: 100%; margin-bottom: 20px;">
-                <tr><td style="padding: 8px 0; color: #666;"><strong>Product:</strong></td><td style="padding: 8px 0;">${extra['Product Name'] || 'N/A'}</td></tr>
-                <tr><td style="padding: 8px 0; color: #666;"><strong>Company:</strong></td><td style="padding: 8px 0;">${extra['Company'] || 'N/A'}</td></tr>
-                <tr><td style="padding: 8px 0; color: #666;"><strong>Quantity:</strong></td><td style="padding: 8px 0;">${extra['Quantity'] || 1}</td></tr>
-              </table>
-
-              <h2 style="color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; margin-top: 30px;">Delivery Address</h2>
-              <p style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4CAF50; margin: 10px 0;">${extra['Delivery Address'] || 'N/A'}</p>
-
-              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                <p><strong>Order Time:</strong> ${orderDate}</p>
-              </div>
-            </div>
-          </div>
-        `;
-
-        textContent = `📦 NEW PRODUCT ORDER
-
-CUSTOMER DETAILS:
-Name: ${name}
-Phone: ${phone}
-Email: ${email}
-
-ORDER DETAILS:
-Product: ${extra['Product Name'] || 'N/A'}
-Company: ${extra['Company'] || 'N/A'}
-Quantity: ${extra['Quantity'] || 1}
-
-DELIVERY ADDRESS:
-${extra['Delivery Address'] || 'N/A'}
-
-Order Time: ${orderDate}
-`;
-      } else {
-        // Default format for other form types
-        const extra = req.body?.extra || {};
-        const phone = req.body?.phone || 'N/A';
-        const email = req.body?.email || 'N/A';
-        const message = req.body?.message || '';
-
-        htmlContent = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
-            <div style="background-color: #2196F3; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; font-size: 24px;">📧 ${formType}</h1>
-            </div>
-            
-            <div style="background-color: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-              <h2 style="color: #333; border-bottom: 2px solid #2196F3; padding-bottom: 10px;">Contact Information</h2>
-              <table style="width: 100%; margin-bottom: 20px;">
-                <tr><td style="padding: 8px 0; color: #666;"><strong>Name:</strong></td><td style="padding: 8px 0;">${name}</td></tr>
-                <tr><td style="padding: 8px 0; color: #666;"><strong>Phone:</strong></td><td style="padding: 8px 0;">${phone}</td></tr>
-                <tr><td style="padding: 8px 0; color: #666;"><strong>Email:</strong></td><td style="padding: 8px 0;">${email}</td></tr>
-              </table>
-
-              ${message ? `<h2 style="color: #333; border-bottom: 2px solid #2196F3; padding-bottom: 10px; margin-top: 30px;">Message</h2>
-              <p style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #2196F3; margin: 10px 0;">${message}</p>` : ''}
-
-              ${Object.keys(extra).length > 0 ? `<h2 style="color: #333; border-bottom: 2px solid #2196F3; padding-bottom: 10px; margin-top: 30px;">Additional Details</h2>
-              <table style="width: 100%; margin-bottom: 20px;">
-                ${Object.entries(extra).map(([key, value]) => `
-                  <tr><td style="padding: 8px 0; color: #666;"><strong>${key}:</strong></td><td style="padding: 8px 0;">${value}</td></tr>
-                `).join('')}
-              </table>` : ''}
-
-              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                <p><strong>Received:</strong> ${new Date(now).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
-              </div>
-            </div>
-          </div>
-        `;
-
-        textContent = `${formType.toUpperCase()}
-
-CONTACT INFORMATION:
-Name: ${name}
-Phone: ${phone}
-Email: ${email}
-
-${message ? `MESSAGE:\n${message}\n` : ''}
-${Object.keys(extra).length > 0 ? `\nADDITIONAL DETAILS:\n${Object.entries(extra).map(([k, v]) => `${k}: ${v}`).join('\n')}` : ''}
-
-Received: ${new Date(now).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
-`;
-      }
-
-      console.log('📧 Sending email to:', toEmail);
-        const info = await transporter.sendMail({
-          from: process.env.SMTP_FROM || process.env.SMTP_USER,
-          to: toEmail,
-          subject,
-          text: textContent,
-          html: htmlContent,
-        });
-
-        console.log('✅ Email sent successfully! Message ID:', info.messageId);
-        
-        // Log success (wrapped in try-catch)
-        try {
-          const emailLogPath = path.join(dataDir, 'email.log');
-          fs.appendFileSync(emailLogPath, `[${now}] sent to ${toEmail} | ${subject}\n`);
-        } catch (logError) {
-          console.warn('⚠️ Could not write to email.log:', logError.message);
-        }
-        
-        return res.json({ success: true, message: 'Email sent successfully', queued: false });
-      } catch (emailError) {
-        // Email failed but submission was already saved
-        console.error('⚠️ Email sending failed but submission was saved:', emailError.message);
-        return res.json({ 
-          success: true, 
-          message: 'Order submitted successfully (email notification failed)', 
-          queued: true,
-          emailWarning: 'Email notification could not be sent'
-        });
-      }
-    }
-
-    // If not sending, we still logged & stored
-    console.log('ℹ️ Email sending disabled (SEND_EMAILS != true)');
-    return res.json({ success: true, message: 'Submission stored successfully', queued: true });
+    // 3) Submission stored successfully in Google Sheets
+    console.log('✅ Submission stored successfully in Google Sheets');
+    return res.json({ success: true, message: 'Submission stored successfully in Google Sheets' });
   } catch (error) {
     console.error('❌ Error in /api/send-email:', error);
     console.error('❌ Error name:', error.name);
@@ -866,31 +777,86 @@ Received: ${new Date(now).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
   }
 });
 
-// ==================== PLANS API ENDPOINTS ====================
-
 // Get all plans
-app.get('/api/plans', (req, res) => {
-  const plansPath = path.join(__dirname, 'data', 'plans.json');
-  
+app.get('/api/plans', async (req, res) => {
   try {
+    // If database is configured, use it
+    if (db.isConfigured) {
+      const result = await db.query('SELECT * FROM plans ORDER BY id');
+      
+      const plans = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        duration: row.duration,
+        description: row.description,
+        popular: row.popular,
+        features: Array.isArray(row.features) ? row.features : (row.features ? row.features.split(',') : [])
+      }));
+      
+      console.log('✅ Plans loaded from Supabase:', plans.length);
+      return res.json(plans);
+    }
+    
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback for plans');
+    const plansPath = path.join(__dirname, 'data', 'plans.json');
+    
     if (fs.existsSync(plansPath)) {
       const data = fs.readFileSync(plansPath, 'utf8');
       const plans = JSON.parse(data);
+      console.log('✅ Plans loaded from file:', plans.length);
       res.json(plans);
     } else {
+      console.log('ℹ️ Plans file not found - returning empty array');
       res.json([]);
     }
   } catch (error) {
-    console.error('Error reading plans:', error);
+    console.error('❌ Error reading plans:', error.message);
     res.status(500).json({ error: 'Failed to read plans' });
   }
 });
 
 // Create new plan
-app.post('/api/plans', (req, res) => {
-  const plansPath = path.join(__dirname, 'data', 'plans.json');
-  
+app.post('/api/plans', async (req, res) => {
   try {
+    const features = Array.isArray(req.body.features) ? req.body.features : [];
+    
+    // If database is configured, use it
+    if (db.isConfigured) {
+      const result = await db.query(
+        'INSERT INTO plans (id, name, duration, description, popular, features) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [
+          req.body.id || Date.now().toString(),
+          req.body.name,
+          req.body.duration || 'Monthly',
+          req.body.description || '',
+          req.body.popular || false,
+          features
+        ]
+      );
+      
+      const newPlan = {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        duration: result.rows[0].duration,
+        description: result.rows[0].description,
+        popular: result.rows[0].popular,
+        features: result.rows[0].features
+      };
+      
+      console.log('✅ Plan created successfully in Supabase');
+      return res.json(newPlan);
+    }
+    
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback');
+    const plansPath = path.join(__dirname, 'data', 'plans.json');
+    const dataDir = path.join(__dirname, 'data');
+    
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
     let plans = [];
     if (fs.existsSync(plansPath)) {
       const data = fs.readFileSync(plansPath, 'utf8');
@@ -900,82 +866,141 @@ app.post('/api/plans', (req, res) => {
     const newPlan = {
       id: req.body.id || Date.now().toString(),
       name: req.body.name,
-      price: req.body.price,
       duration: req.body.duration || 'Monthly',
-      features: req.body.features || [],
+      description: req.body.description || '',
       popular: req.body.popular || false,
-      description: req.body.description || ''
+      features: features
     };
     
     plans.push(newPlan);
-    
-    // Ensure data directory exists
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    
     fs.writeFileSync(plansPath, JSON.stringify(plans, null, 2));
+    
+    console.log('✅ Plan created successfully in JSON file');
     res.json(newPlan);
   } catch (error) {
-    console.error('Error creating plan:', error);
+    console.error('❌ Error creating plan:', error);
     res.status(500).json({ error: 'Failed to create plan', details: error.message });
   }
 });
 
 // Update plan
-app.put('/api/plans/:id', (req, res) => {
-  const plansPath = path.join(__dirname, 'data', 'plans.json');
+app.put('/api/plans/:id', async (req, res) => {
   const { id } = req.params;
   
   try {
-    if (fs.existsSync(plansPath)) {
-      const data = fs.readFileSync(plansPath, 'utf8');
-      let plans = JSON.parse(data);
+    const features = Array.isArray(req.body.features) ? req.body.features : [];
+    
+    // If database is configured, use it
+    if (db.isConfigured) {
+      const result = await db.query(
+        'UPDATE plans SET name = $1, duration = $2, description = $3, popular = $4, features = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING *',
+        [
+          req.body.name,
+          req.body.duration || 'Monthly',
+          req.body.description || '',
+          req.body.popular || false,
+          features,
+          id
+        ]
+      );
       
-      const index = plans.findIndex(p => p.id === id);
-      if (index !== -1) {
-        plans[index] = { 
-          ...plans[index],
-          name: req.body.name,
-          price: req.body.price,
-          duration: req.body.duration || 'Monthly',
-          features: req.body.features || [],
-          popular: req.body.popular || false,
-          description: req.body.description || ''
-        };
-        fs.writeFileSync(plansPath, JSON.stringify(plans, null, 2));
-        res.json(plans[index]);
-      } else {
-        res.status(404).json({ error: 'Plan not found' });
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Plan not found' });
       }
-    } else {
-      res.status(404).json({ error: 'Plans file not found' });
+      
+      const updatedPlan = {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        duration: result.rows[0].duration,
+        description: result.rows[0].description,
+        popular: result.rows[0].popular,
+        features: result.rows[0].features
+      };
+      
+      console.log('✅ Plan updated successfully in Supabase');
+      return res.json(updatedPlan);
     }
+    
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback');
+    const plansPath = path.join(__dirname, 'data', 'plans.json');
+    
+    if (!fs.existsSync(plansPath)) {
+      return res.status(404).json({ error: 'Plans file not found' });
+    }
+    
+    const data = fs.readFileSync(plansPath, 'utf8');
+    let plans = JSON.parse(data);
+    
+    const index = plans.findIndex(p => p.id === id);
+    
+    if (index === -1) {
+      return res.status(404).json({ error: 'Plan not found' });
+    }
+    
+    plans[index] = {
+      ...plans[index],
+      name: req.body.name,
+      duration: req.body.duration || 'Monthly',
+      description: req.body.description || '',
+      popular: req.body.popular || false,
+      features: features
+    };
+    
+    fs.writeFileSync(plansPath, JSON.stringify(plans, null, 2));
+    
+    console.log('✅ Plan updated successfully in JSON file');
+    res.json(plans[index]);
   } catch (error) {
-    console.error('Error updating plan:', error);
+    console.error('❌ Error updating plan:', error);
     res.status(500).json({ error: 'Failed to update plan', details: error.message });
   }
 });
 
 // Delete plan
-app.delete('/api/plans/:id', (req, res) => {
-  const plansPath = path.join(__dirname, 'data', 'plans.json');
+app.delete('/api/plans/:id', async (req, res) => {
   const { id } = req.params;
   
   try {
-    if (fs.existsSync(plansPath)) {
-      const data = fs.readFileSync(plansPath, 'utf8');
-      let plans = JSON.parse(data);
+    // If database is configured, use it
+    if (db.isConfigured) {
+      const result = await db.query(
+        'DELETE FROM plans WHERE id = $1 RETURNING id',
+        [id]
+      );
       
-      plans = plans.filter(p => p.id !== id);
-      fs.writeFileSync(plansPath, JSON.stringify(plans, null, 2));
-      res.json({ message: 'Plan deleted successfully' });
-    } else {
-      res.status(404).json({ error: 'Plans file not found' });
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Plan not found' });
+      }
+      
+      console.log('✅ Plan deleted successfully from Supabase');
+      return res.json({ message: 'Plan deleted successfully' });
     }
+    
+    // Fallback to JSON file
+    console.log('📂 Using JSON file fallback');
+    const plansPath = path.join(__dirname, 'data', 'plans.json');
+    
+    if (!fs.existsSync(plansPath)) {
+      return res.status(404).json({ error: 'Plans file not found' });
+    }
+    
+    const data = fs.readFileSync(plansPath, 'utf8');
+    let plans = JSON.parse(data);
+    
+    const beforeCount = plans.length;
+    plans = plans.filter(p => p.id !== id);
+    
+    if (beforeCount === plans.length) {
+      return res.status(404).json({ error: 'Plan not found' });
+    }
+    
+    fs.writeFileSync(plansPath, JSON.stringify(plans, null, 2));
+    
+    console.log('✅ Plan deleted successfully from JSON file');
+    res.json({ message: 'Plan deleted successfully' });
   } catch (error) {
-    console.error('Error deleting plan:', error);
+    console.error('❌ Error deleting plan:', error);
     res.status(500).json({ error: 'Failed to delete plan' });
   }
 });

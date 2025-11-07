@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/package.json",
   "name": "uzhavar-backend",
   "version": "1.0.0",
   "main": "index.js",
@@ -13,6 +12,7 @@
     "express": "^4.21.2",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^7.0.10",
+    "pg": "^8.16.3",
     "uzhavar-connect": "file:.."
   },
   "scripts": {

@@ -400,7 +400,6 @@ export default function AdminCompaniesPage({ onLogout }) {
                             />
                           )}
                           <h5 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>{product.name}</h5>
-                          {product.price && <p style={{ margin: '0 0 0.5rem 0', color: '#28a745', fontWeight: 'bold' }}>₹{product.price}</p>}
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button 
                               className="btn btn-secondary" 
