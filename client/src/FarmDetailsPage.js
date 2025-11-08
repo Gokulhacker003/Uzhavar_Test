@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import { apiUrl } from './api';
 import { sanitizePhone, isValidPhone } from './utils/validation';
 
 export default function FarmDetailsPage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     ownerName: '',
     contact: '',
@@ -46,7 +48,6 @@ export default function FarmDetailsPage() {
       alert('Please enter a valid 10-digit phone number');
       return;
     }
-    setSubmitted(true);
     
     // Prepare email data with ALL fields for Google Sheets
     const emailData = {
@@ -78,9 +79,33 @@ export default function FarmDetailsPage() {
     .then(response => response.json())
     .then(data => {
       console.log('Farm details submitted successfully:', data);
+      setSubmitted(true);
+      
+      // Store notification in sessionStorage for home page
+      sessionStorage.setItem('farmSubmitNotification', JSON.stringify({
+        show: true,
+        success: true,
+        message: `Thank you ${form.ownerName}! Your farm details have been submitted successfully. We'll contact you soon.`
+      }));
+      
+      // Redirect to home page after 1 second
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
     })
     .catch(error => {
       console.error('Error submitting farm details:', error);
+      
+      // Store error notification
+      sessionStorage.setItem('farmSubmitNotification', JSON.stringify({
+        show: true,
+        success: false,
+        message: 'There was an error submitting your farm details. Please try again.'
+      }));
+      
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
     });
   }
 

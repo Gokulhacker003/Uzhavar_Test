@@ -35,6 +35,7 @@ export default function JoinUsPage() {
   });
 
   const [errors, setErrors] = useState({});
+  const [submitStatus, setSubmitStatus] = useState({ show: false, success: false, message: '' });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -128,32 +129,43 @@ export default function JoinUsPage() {
         }
       };
 
-      // Send email
+      // Send email to Google Sheets
       fetch(apiUrl('/api/send-email'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(emailData)
-      }).then(res => res.json()).then(emailResult => {
-        console.log('Registration email sent:', emailResult);
-      }).catch(err => {
-        console.error('Failed to send registration email:', err);
-      });
-
-      // Send data to local storage
-      fetch(apiUrl('/api/store-data'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: `${userType}-registration`,
-          data: { userType, ...formData }
-        })
-      }).then(res => res.json()).then(result => {
-        console.log('Registration data stored locally:', result);
-        alert(`Registration submitted successfully for ${userType}! Your information has been saved.`);
-        resetForm();
-      }).catch(err => {
-        console.error('Failed to store registration data:', err);
-        alert('Registration submitted, but there was an issue saving your data. Please try again.');
+      })
+      .then(res => res.json())
+      .then(emailResult => {
+        console.log('Registration submitted successfully:', emailResult);
+        // Check if there's an error in the response
+        if (emailResult.error) {
+          console.error('Server error:', emailResult.error);
+          setSubmitStatus({
+            show: true,
+            success: false,
+            message: 'Registration submitted, but there was an issue. Please contact us if you don\'t receive confirmation.'
+          });
+        } else {
+          setSubmitStatus({
+            show: true,
+            success: true,
+            message: `Thank you! Your registration as a ${userType} has been submitted successfully. We'll contact you soon.`
+          });
+          // Reset form after 3 seconds
+          setTimeout(() => {
+            resetForm();
+            setSubmitStatus({ show: false, success: false, message: '' });
+          }, 3000);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to submit registration:', err);
+        setSubmitStatus({
+          show: true,
+          success: false,
+          message: 'There was a network error. Please check your connection and try again.'
+        });
       });
     }
   };
@@ -166,6 +178,7 @@ export default function JoinUsPage() {
       workerType: '', experience: '', skills: '', vehicleOwned: '', availability: '', previousWork: '', idProof: '', expectedSalary: ''
     });
     setErrors({});
+    setSubmitStatus({ show: false, success: false, message: '' });
   };
 
   if (!userType) {
@@ -592,13 +605,93 @@ export default function JoinUsPage() {
 
             {/* Submit Button */}
             <div className="form-section">
-              <button type="button" onClick={handleSubmit} className="btn btn-primary" style={{width: '100%', padding: '15px', fontSize: '18px'}}>
-                {userType === 'farmer' ? 'Register My Farm' : 'Apply as Partner'}
+              <button 
+                type="button" 
+                onClick={handleSubmit} 
+                className="btn btn-primary" 
+                style={{
+                  width: '100%', 
+                  padding: '15px', 
+                  fontSize: '18px',
+                  transition: 'all 0.3s ease'
+                }}
+                disabled={submitStatus.show && submitStatus.success}
+              >
+                {submitStatus.show && submitStatus.success 
+                  ? 'Registration Submitted ✓' 
+                  : (userType === 'farmer' ? 'Register My Farm' : 'Apply as Partner')
+                }
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modern Toast Notification - Top Right Corner */}
+      {submitStatus.show && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 9999,
+          minWidth: '320px',
+          maxWidth: '400px',
+          background: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+          overflow: 'hidden',
+          animation: 'toastSlideIn 0.5s ease-out',
+          border: `3px solid ${submitStatus.success ? '#4CAF50' : '#f44336'}`
+        }}>
+          {/* Colored header bar */}
+          <div style={{
+            background: submitStatus.success 
+              ? 'linear-gradient(135deg, #4CAF50 0%, #81C784 100%)'
+              : 'linear-gradient(135deg, #f44336 0%, #e57373 100%)',
+            padding: '1em 1.5em',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1em'
+          }}>
+            <div style={{
+              fontSize: '2em',
+              animation: 'scaleIn 0.5s ease-out'
+            }}>
+              {submitStatus.success ? '✓' : '✕'}
+            </div>
+            <div>
+              <h4 style={{ margin: 0, color: 'white', fontSize: '1.1em', fontWeight: 600 }}>
+                {submitStatus.success ? 'Success!' : 'Error'}
+              </h4>
+            </div>
+          </div>
+
+          {/* Message content */}
+          <div style={{
+            padding: '1.5em',
+            color: '#333',
+            fontSize: '0.95em',
+            lineHeight: '1.6'
+          }}>
+            {submitStatus.message}
+          </div>
+
+          {/* Progress bar */}
+          {submitStatus.success && (
+            <div style={{
+              height: '4px',
+              background: '#e0e0e0',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                height: '100%',
+                background: submitStatus.success ? '#4CAF50' : '#f44336',
+                animation: 'progressBar 3s linear'
+              }} />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

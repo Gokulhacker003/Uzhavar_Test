@@ -11,6 +11,7 @@ export default function BookTeamPage() {
     crop: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [notification, setNotification] = useState({ show: false, success: false, message: '' });
 
   function handleChange(e) {
     const { name, value, files } = e.target;
@@ -54,9 +55,39 @@ export default function BookTeamPage() {
     .then(response => response.json())
     .then(data => {
       console.log('Team booking form submitted successfully:', data);
+      setNotification({ 
+        show: true, 
+        success: true, 
+        message: `Thank you ${form.name}! Your team booking request has been submitted successfully. Our team will contact you soon!` 
+      });
+      
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        setForm({
+          name: '',
+          contact: '',
+          address: '',
+          landImage: null,
+          crop: ''
+        });
+        setSubmitted(false);
+      }, 3000);
+      
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        setNotification({ show: false, success: false, message: '' });
+      }, 3000);
     })
     .catch(error => {
       console.error('Error submitting team booking form:', error);
+      setNotification({ 
+        show: true, 
+        success: false, 
+        message: 'Failed to submit booking request. Please try again.' 
+      });
+      setTimeout(() => {
+        setNotification({ show: false, success: false, message: '' });
+      }, 3000);
     });
   }
 
@@ -128,6 +159,72 @@ export default function BookTeamPage() {
         </form>
         {submitted && <div style={{ color: '#2e7d32', marginTop: 20, textAlign: 'center', fontWeight: 'bold' }}>Thank you! We received your details.</div>}
       </div>
+      
+      {/* Toast Notification */}
+      {notification.show && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 9999,
+          minWidth: '320px',
+          maxWidth: '400px',
+          background: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+          overflow: 'hidden',
+          animation: 'toastSlideIn 0.5s ease-out',
+          border: `3px solid ${notification.success ? '#4CAF50' : '#f44336'}`
+        }}>
+          {/* Colored header bar */}
+          <div style={{
+            background: notification.success 
+              ? 'linear-gradient(135deg, #4CAF50 0%, #81C784 100%)'
+              : 'linear-gradient(135deg, #f44336 0%, #e57373 100%)',
+            padding: '1em 1.5em',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1em'
+          }}>
+            <div style={{
+              fontSize: '2em',
+              animation: 'scaleIn 0.5s ease-out'
+            }}>
+              {notification.success ? '✓' : '✕'}
+            </div>
+            <div>
+              <h4 style={{ margin: 0, color: 'white', fontSize: '1.1em', fontWeight: 600 }}>
+                {notification.success ? 'Success!' : 'Error'}
+              </h4>
+            </div>
+          </div>
+
+          {/* Message content */}
+          <div style={{
+            padding: '1.5em',
+            color: '#333',
+            fontSize: '0.95em',
+            lineHeight: '1.6'
+          }}>
+            {notification.message}
+          </div>
+
+          {/* Progress bar */}
+          {notification.success && (
+            <div style={{
+              height: '4px',
+              background: '#e0e0e0',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                height: '100%',
+                background: '#4CAF50',
+                animation: 'progressBar 3s linear'
+              }} />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
