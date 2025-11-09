@@ -182,7 +182,7 @@ app.get('/api/companies', async (req, res) => {
     if (db.isConfigured) {
       const result = await db.query(`
         SELECT c.id, c.name, c.description, c.logo,
-               json_agg(json_build_object('name', p.name, 'price', p.price, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
+               json_agg(json_build_object('name', p.name, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
         FROM companies c
         LEFT JOIN products p ON c.id = p.company_id
         GROUP BY c.id, c.name, c.description, c.logo
@@ -426,13 +426,13 @@ app.post('/api/companies/:companyId/products', upload.single('image'), async (re
     // If database is configured, use it
     if (db.isConfigured) {
       await db.query(
-        'INSERT INTO products (company_id, name, price, image) VALUES ($1, $2, $3, $4)',
-        [req.params.companyId, req.body.name, req.body.price, imagePath]
+        'INSERT INTO products (company_id, name, image) VALUES ($1, $2, $3)',
+        [req.params.companyId, req.body.name, imagePath]
       );
       
       const result = await db.query(`
         SELECT c.id, c.name, c.description, c.logo,
-               json_agg(json_build_object('name', p.name, 'price', p.price, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
+               json_agg(json_build_object('name', p.name, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
         FROM companies c
         LEFT JOIN products p ON c.id = p.company_id
         WHERE c.id = $1
@@ -476,7 +476,6 @@ app.post('/api/companies/:companyId/products', upload.single('image'), async (re
     
     const newProduct = {
       name: req.body.name,
-      price: req.body.price,
       image: imagePath
     };
     
@@ -515,9 +514,9 @@ app.put('/api/companies/:companyId/products/:productIndex', upload.single('image
       
       const productId = getResult.rows[0].id;
       
-      let updateQuery = 'UPDATE products SET name = $1, price = $2';
-      let params = [req.body.name, req.body.price];
-      let paramIndex = 3;
+      let updateQuery = 'UPDATE products SET name = $1';
+      let params = [req.body.name];
+      let paramIndex = 2;
       
       if (imagePath !== undefined) {
         updateQuery += `, image = $${paramIndex}`;
@@ -532,7 +531,7 @@ app.put('/api/companies/:companyId/products/:productIndex', upload.single('image
       
       const result = await db.query(`
         SELECT c.id, c.name, c.description, c.logo,
-               json_agg(json_build_object('name', p.name, 'price', p.price, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
+               json_agg(json_build_object('name', p.name, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
         FROM companies c
         LEFT JOIN products p ON c.id = p.company_id
         WHERE c.id = $1
@@ -571,7 +570,6 @@ app.put('/api/companies/:companyId/products/:productIndex', upload.single('image
     
     company.products[idx] = {
       name: req.body.name,
-      price: req.body.price,
       image: imagePath !== undefined ? imagePath : company.products[idx].image
     };
     
