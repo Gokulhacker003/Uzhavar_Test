@@ -13,7 +13,6 @@ export default function LandPage() {
     area: '',
     soilType: '',
     waterSource: '',
-    price: '',
     description: '',
     pattaNumber: '',
     landImage: null
@@ -47,7 +46,6 @@ export default function LandPage() {
       extra: {
         'Owner Name': form.owner,
         'Area (acres)': form.area,
-        'Price': form.price,
         'Contact': form.contact,
         'Location': form.location ? `Lat: ${form.location.lat}, Lng: ${form.location.lng}` : 'Not selected',
         'Land Image': form.landImage ? form.landImage.name : 'No image uploaded',
@@ -82,7 +80,6 @@ export default function LandPage() {
           area: '',
           soilType: '',
           waterSource: '',
-          price: '',
           description: '',
           pattaNumber: '',
           landImage: null
@@ -160,10 +157,6 @@ export default function LandPage() {
           <div className="form-group">
             <label>Water Source</label>
             <input type="text" name="waterSource" value={form.waterSource} onChange={handleChange} />
-          </div>
-          <div className="form-group">
-            <label>Expected Price (INR)</label>
-            <input type="number" name="price" value={form.price} onChange={handleChange} required min="0" step="1000" />
           </div>
           <div className="form-group">
             <label>Description</label>

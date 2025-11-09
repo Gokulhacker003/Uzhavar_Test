@@ -5,7 +5,7 @@ export default function AdminCompaniesPage({ onLogout }) {
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState({ name: '', description: '', logo: '', logoFile: null });
   const [editingId, setEditingId] = useState(null);
-  const [productForm, setProductForm] = useState({ name: '', price: '', image: '', imageFile: null });
+  const [productForm, setProductForm] = useState({ name: '', image: '', imageFile: null });
   const [activeProductCompanyId, setActiveProductCompanyId] = useState(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryType, setGalleryType] = useState('product'); // 'product' or 'logo'
@@ -127,7 +127,6 @@ export default function AdminCompaniesPage({ onLogout }) {
 
     const formData = new FormData();
     formData.append('name', productForm.name);
-    formData.append('price', productForm.price || '');
     if (productForm.imageFile) {
       formData.append('image', productForm.imageFile);
     } else if (productForm.image) {
@@ -141,7 +140,7 @@ export default function AdminCompaniesPage({ onLogout }) {
     .then(r => r.json())
     .then(updated => {
       setCompanies(prev => prev.map(c => c.id === companyId ? updated : c));
-      setProductForm({ name: '', price: '', image: '', imageFile: null });
+      setProductForm({ name: '', image: '', imageFile: null });
       setActiveProductCompanyId(null);
     })
     .catch(err => {
@@ -156,7 +155,6 @@ export default function AdminCompaniesPage({ onLogout }) {
 
     const formData = new FormData();
     formData.append('name', productForm.name);
-    formData.append('price', productForm.price || '');
     if (productForm.imageFile) {
       formData.append('image', productForm.imageFile);
     } else if (productForm.image !== undefined) {
@@ -170,7 +168,7 @@ export default function AdminCompaniesPage({ onLogout }) {
     .then(r => r.json())
     .then(updated => {
       setCompanies(prev => prev.map(c => c.id === companyId ? updated : c));
-      setProductForm({ name: '', price: '', image: '', imageFile: null });
+      setProductForm({ name: '', image: '', imageFile: null });
       setActiveProductCompanyId(null);
     })
     .catch(err => {
@@ -380,7 +378,7 @@ export default function AdminCompaniesPage({ onLogout }) {
                       style={{ fontSize: '0.9em' }} 
                       onClick={() => { 
                         setActiveProductCompanyId(company.id); 
-                        setProductForm({ name: '', price: '', image: '', imageFile: null, editIndex: null }); 
+                        setProductForm({ name: '', image: '', imageFile: null, editIndex: null }); 
                       }}
                     >
                       Add Product
@@ -408,7 +406,6 @@ export default function AdminCompaniesPage({ onLogout }) {
                                 setActiveProductCompanyId(company.id);
                                 setProductForm({ 
                                   name: product.name, 
-                                  price: product.price || '', 
                                   image: product.image || '',
                                   imageFile: null,
                                   editIndex: idx 
@@ -459,19 +456,6 @@ export default function AdminCompaniesPage({ onLogout }) {
                               style={{ padding: '0.7em', borderRadius: 4, border: '1px solid #ced4da', width: '100%', fontSize: '0.95rem', boxSizing: 'border-box' }} 
                             />
                           </div>
-                          <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: '#495057', fontSize: '0.9rem' }}>Price (₹)</label>
-                            <input 
-                              name="price" 
-                              value={productForm.price} 
-                              onChange={handleProductChange} 
-                              placeholder="0.00" 
-                              type="number" 
-                              min="0" 
-                              step="0.01"
-                              style={{ padding: '0.7em', borderRadius: 4, border: '1px solid #ced4da', width: '100%', fontSize: '0.95rem', boxSizing: 'border-box' }} 
-                            />
-                          </div>
                         </div>
                         
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
@@ -515,7 +499,7 @@ export default function AdminCompaniesPage({ onLogout }) {
                             className="btn btn-secondary" 
                             onClick={() => { 
                               setActiveProductCompanyId(null); 
-                              setProductForm({ name: '', price: '', image: '', imageFile: null }); 
+                              setProductForm({ name: '', image: '', imageFile: null }); 
                             }}
                             style={{ padding: '0.7em 1.5em' }}
                           >
