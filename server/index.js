@@ -27,7 +27,9 @@ const upload = multer({
 });
 
 const allowedOrigins = [
-  "https://uzhavar-gvhc.onrender.com",  // backend on Render
+  'https://uzhavar-gvhc.onrender.com',  // backend on Render
+  'https://www.uzhavarconnect.com',
+  'https://uzhavarconnect.com',
   'http://localhost:3000',                 // CRA dev
   'http://localhost:3001',                 // CRA dev alternate port
   'http://localhost:4000'                  // Backend itself (for proxy)
