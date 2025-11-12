@@ -330,7 +330,7 @@ app.put('/api/companies/:id', upload.single('logo'), async (req, res) => {
       }
       
       const productsResult = await db.query(
-        'SELECT name, price, image FROM products WHERE company_id = $1',
+        'SELECT name, image FROM products WHERE company_id = $1',
         [req.params.id]
       );
       
