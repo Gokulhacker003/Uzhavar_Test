@@ -2,10 +2,30 @@
 
 const AUTH_KEY = 'uzhavar_admin_auth';
 
+// Safe localStorage wrapper for SSR/build compatibility
+const safeLocalStorage = {
+  getItem: (key) => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem(key);
+    }
+    return null;
+  },
+  setItem: (key, value) => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(key, value);
+    }
+  },
+  removeItem: (key) => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem(key);
+    }
+  }
+};
+
 export const authHelper = {
   // Check if user is authenticated
   isAuthenticated: () => {
-    const authData = localStorage.getItem(AUTH_KEY);
+    const authData = safeLocalStorage.getItem(AUTH_KEY);
     console.log('🔐 Auth check - authData:', authData);
     
     if (!authData) {
@@ -33,7 +53,7 @@ export const authHelper = {
           timestamp: Date.now(),
           username: JSON.parse(authData).username
         };
-        localStorage.setItem(AUTH_KEY, JSON.stringify(updatedAuthData));
+        safeLocalStorage.setItem(AUTH_KEY, JSON.stringify(updatedAuthData));
         
         return true;
       }
@@ -57,7 +77,7 @@ export const authHelper = {
         timestamp: Date.now(),
         username: username
       };
-      localStorage.setItem(AUTH_KEY, JSON.stringify(authData));
+      safeLocalStorage.setItem(AUTH_KEY, JSON.stringify(authData));
       return { success: true };
     }
     return { success: false, error: 'Invalid credentials' };
@@ -65,12 +85,12 @@ export const authHelper = {
 
   // Logout user
   logout: () => {
-    localStorage.removeItem(AUTH_KEY);
+    safeLocalStorage.removeItem(AUTH_KEY);
   },
 
   // Get current user info
   getUser: () => {
-    const authData = localStorage.getItem(AUTH_KEY);
+    const authData = safeLocalStorage.getItem(AUTH_KEY);
     if (!authData) return null;
     
     try {
