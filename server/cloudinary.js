@@ -7,9 +7,9 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 // Configure Cloudinary with credentials from .env
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'ddenqoijd',
-  api_key: process.env.CLOUDINARY_API_KEY || '271666988918932',
-  api_secret: process.env.CLOUDINARY_API_SECRET || 'oFmJJo0l67wnz-H0sKhwMTJwHz0'
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME ,
+  api_key: process.env.CLOUDINARY_API_KEY ,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 console.log('☁️ Cloudinary configured:', {
