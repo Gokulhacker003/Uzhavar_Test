@@ -10,7 +10,7 @@
     "prod": "cross-env NODE_ENV=production npm start --prefix server && npm start --prefix client"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0 <25.0.0"
   },
   "dependencies": {
     "concurrently": "^8.2.2",

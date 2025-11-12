@@ -25,7 +25,7 @@
   },
   "scripts": {
     "start": "cross-env WDS_ALLOWED_HOSTS=all DANGEROUSLY_DISABLE_HOST_CHECK=true react-scripts start",
-    "build": "react-scripts build",
+    "build": "cross-env NODE_OPTIONS='--no-experimental-webstorage' react-scripts build",
     "vercel-build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
