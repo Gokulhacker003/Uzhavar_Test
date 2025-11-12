@@ -25,11 +25,11 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024 // 10MB limit
   }
 });
-
+//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
 const allowedOrigins = [
-  'https://uzhavar-gvhc.onrender.com',  // backend on Render
-  'https://www.uzhavarconnect.com',
-  'https://uzhavarconnect.com',
+  'https://www.uzhavarconnect.com',        // Custom production domain
+  'https://uzhavarconnect.com',            // Custom production domain (without www)
+  'https://uzhavar-gvhc.onrender.com',     // production frontend on Render (new URL)
   'http://localhost:3000',                 // CRA dev
   'http://localhost:3001',                 // CRA dev alternate port
   'http://localhost:4000'                  // Backend itself (for proxy)
