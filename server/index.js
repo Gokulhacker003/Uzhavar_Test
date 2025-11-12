@@ -7,6 +7,7 @@ const path = require('path');
 const multer = require('multer');
 const https = require('https');
 const db = require('./db'); // Database connection
+const { uploadToCloudinary, deleteFromCloudinary } = require('./cloudinary'); // Cloudinary integration
 
 // Allow self-signed certificates in development
 if (process.env.NODE_ENV !== 'production') {
@@ -16,22 +17,14 @@ if (process.env.NODE_ENV !== 'production') {
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
-    cb(null, uniqueSuffix);
+// Configure multer for memory storage (files will be uploaded to Cloudinary)
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
   }
 });
-
-const upload = multer({ storage: storage });
 
 const allowedOrigins = [
   'https://uzhavar.onrender.com',          // production frontend on Render
@@ -224,9 +217,21 @@ app.get('/api/companies', async (req, res) => {
 app.post('/api/companies', upload.single('logo'), async (req, res) => {
   console.log('➕ POST /api/companies - Creating new company');
   console.log('📝 Request body:', req.body);
-  console.log('📝 File uploaded:', req.file ? req.file.filename : 'none');
+  console.log('📝 File uploaded:', req.file ? req.file.originalname : 'none');
   
-  const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo || '');
+  let logoPath = req.body.logo || '';
+  
+  // Upload to Cloudinary if file provided
+  if (req.file) {
+    try {
+      const result = await uploadToCloudinary(req.file.buffer, 'uzhavar/companies');
+      logoPath = result.secure_url;
+      console.log('☁️ Logo uploaded to Cloudinary:', logoPath);
+    } catch (error) {
+      console.error('❌ Cloudinary upload failed:', error);
+      return res.status(500).json({ error: 'Failed to upload logo', details: error.message });
+    }
+  }
   
   try {
     // If database is configured, use it
@@ -288,7 +293,19 @@ app.put('/api/companies/:id', upload.single('logo'), async (req, res) => {
   console.log('📝 Company ID:', req.params.id);
   console.log('📝 Request body:', req.body);
   
-  const logoPath = req.file ? `/uploads/${req.file.filename}` : (req.body.logo !== undefined ? req.body.logo : undefined);
+  let logoPath = req.body.logo !== undefined ? req.body.logo : undefined;
+  
+  // Upload to Cloudinary if new file provided
+  if (req.file) {
+    try {
+      const result = await uploadToCloudinary(req.file.buffer, 'uzhavar/companies');
+      logoPath = result.secure_url;
+      console.log('☁️ Logo uploaded to Cloudinary:', logoPath);
+    } catch (error) {
+      console.error('❌ Cloudinary upload failed:', error);
+      return res.status(500).json({ error: 'Failed to upload logo', details: error.message });
+    }
+  }
   
   try {
     // If database is configured, use it
@@ -420,7 +437,19 @@ app.post('/api/companies/:companyId/products', upload.single('image'), async (re
   console.log('📝 Company ID:', req.params.companyId);
   console.log('📝 Request body:', req.body);
   
-  const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image || '');
+  let imagePath = req.body.image || '';
+  
+  // Upload to Cloudinary if file provided
+  if (req.file) {
+    try {
+      const result = await uploadToCloudinary(req.file.buffer, 'uzhavar/products');
+      imagePath = result.secure_url;
+      console.log('☁️ Product image uploaded to Cloudinary:', imagePath);
+    } catch (error) {
+      console.error('❌ Cloudinary upload failed:', error);
+      return res.status(500).json({ error: 'Failed to upload product image', details: error.message });
+    }
+  }
   
   try {
     // If database is configured, use it
@@ -497,7 +526,19 @@ app.put('/api/companies/:companyId/products/:productIndex', upload.single('image
   console.log('📝 Product Index:', req.params.productIndex);
   
   const { companyId, productIndex } = req.params;
-  const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image !== undefined ? req.body.image : undefined);
+  let imagePath = req.body.image !== undefined ? req.body.image : undefined;
+  
+  // Upload to Cloudinary if new file provided
+  if (req.file) {
+    try {
+      const result = await uploadToCloudinary(req.file.buffer, 'uzhavar/products');
+      imagePath = result.secure_url;
+      console.log('☁️ Product image uploaded to Cloudinary:', imagePath);
+    } catch (error) {
+      console.error('❌ Cloudinary upload failed:', error);
+      return res.status(500).json({ error: 'Failed to upload product image', details: error.message });
+    }
+  }
   
   try {
     // If database is configured, use it

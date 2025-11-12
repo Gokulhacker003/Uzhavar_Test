@@ -82,11 +82,13 @@ export default function FarmDetailsPage() {
       setSubmitted(true);
       
       // Store notification in sessionStorage for home page
-      sessionStorage.setItem('farmSubmitNotification', JSON.stringify({
-        show: true,
-        success: true,
-        message: `Thank you ${form.ownerName}! Your farm details have been submitted successfully. We'll contact you soon.`
-      }));
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.setItem('farmSubmitNotification', JSON.stringify({
+          show: true,
+          success: true,
+          message: `Thank you ${form.ownerName}! Your farm details have been submitted successfully. We'll contact you soon.`
+        }));
+      }
       
       // Redirect to home page after 1 second
       setTimeout(() => {
@@ -97,11 +99,13 @@ export default function FarmDetailsPage() {
       console.error('Error submitting farm details:', error);
       
       // Store error notification
-      sessionStorage.setItem('farmSubmitNotification', JSON.stringify({
-        show: true,
-        success: false,
-        message: 'There was an error submitting your farm details. Please try again.'
-      }));
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.setItem('farmSubmitNotification', JSON.stringify({
+          show: true,
+          success: false,
+          message: 'There was an error submitting your farm details. Please try again.'
+        }));
+      }
       
       setTimeout(() => {
         navigate('/');

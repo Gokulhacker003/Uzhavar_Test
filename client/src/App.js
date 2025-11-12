@@ -36,16 +36,19 @@ function App() {
 
   // Check for notification from farm details submission
   useEffect(() => {
-    const storedNotification = sessionStorage.getItem('farmSubmitNotification');
-    if (storedNotification) {
-      const notif = JSON.parse(storedNotification);
-      setNotification(notif);
-      sessionStorage.removeItem('farmSubmitNotification');
-      
-      // Auto-hide after 3 seconds
-      setTimeout(() => {
-        setNotification({ show: false, success: false, message: '' });
-      }, 3000);
+    // Safe sessionStorage access for SSR/build compatibility
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const storedNotification = sessionStorage.getItem('farmSubmitNotification');
+      if (storedNotification) {
+        const notif = JSON.parse(storedNotification);
+        setNotification(notif);
+        sessionStorage.removeItem('farmSubmitNotification');
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+          setNotification({ show: false, success: false, message: '' });
+        }, 3000);
+      }
     }
   }, []);
 
