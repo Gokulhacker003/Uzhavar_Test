@@ -1,0 +1,49 @@
+﻿/* ==================== MAIN APP STYLESHEET ==================== */
+/* ==========================================================================
+/* Uzhavar Connect - Organized CSS Architecture */
+
+/* Import Order:
+ * 1. Variables (CSS custom properties)
+ * 2. Base styles (reset, typography, general elements)
+ * 3. Navigation & navbar
+ * 4. Buttons
+ * 5. Reusable components (cards, modals, etc.)
+ * 6. Forms
+ * 7. Tables
+ * 8. Page-specific styles
+ * 9. Utilities & animations
+ * 10. Responsive & mobile styles
+ */
+
+/* 1. CSS Variables & Theme */
+@import './styles/variables.css';
+
+/* 2. Base Styles */
+@import './styles/base.css';
+
+/* 3. Navigation & Navbar */
+@import './styles/navbar.css';
+
+/* 4. Buttons */
+@import './styles/buttons.css';
+
+/* 5. Reusable Components */
+@import './styles/components.css';
+
+/* 6. Forms */
+@import './styles/forms.css';
+
+/* 7. Tables */
+@import './styles/tables.css';
+
+/* 8. Page-Specific Styles */
+@import './styles/pages.css';
+
+/* 9. Utilities & Animations */
+@import './styles/utilities.css';
+
+/* 9.5 Glass Effects */
+@import './styles/glass-effect.css';
+
+/* 10. Responsive & Mobile Styles (must be last to override) */
+@import './styles/responsive.css';

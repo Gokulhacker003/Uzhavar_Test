@@ -1,0 +1,231 @@
+import React, { useState } from 'react';
+import { apiUrl } from './api';
+import { sanitizePhone, isValidPhone } from './utils/validation';
+
+export default function BookTeamPage() {
+  const [form, setForm] = useState({
+    name: '',
+    contact: '',
+    address: '',
+    landImage: null,
+    crop: ''
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [notification, setNotification] = useState({ show: false, success: false, message: '' });
+
+  function handleChange(e) {
+    const { name, value, files } = e.target;
+    const v = files ? files[0] : (name === 'contact' ? sanitizePhone(value) : value);
+    setForm(f => ({
+      ...f,
+      [name]: v
+    }));
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!isValidPhone(form.contact)) {
+      alert('Please enter a valid 10-digit phone number');
+      return;
+    }
+    setSubmitted(true);
+    
+    // Prepare email data
+    const emailData = {
+      formType: 'Book My Team',
+      name: form.name,
+      phone: form.contact,
+      message: `Address: ${form.address}${form.crop ? `\nCrop Planted: ${form.crop}` : ''}`,
+      extra: {
+        'Contact Number': form.contact,
+        'Address': form.address,
+        'Crop Planted': form.crop || 'Not specified',
+        'Land Image': form.landImage ? form.landImage.name : 'No image uploaded'
+      }
+    };
+
+    // Send email
+    fetch(apiUrl('/api/send-email'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emailData),
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Team booking form submitted successfully:', data);
+      setNotification({ 
+        show: true, 
+        success: true, 
+        message: `Thank you ${form.name}! Your team booking request has been submitted successfully. Our team will contact you soon!` 
+      });
+      
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        setForm({
+          name: '',
+          contact: '',
+          address: '',
+          landImage: null,
+          crop: ''
+        });
+        setSubmitted(false);
+      }, 3000);
+      
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        setNotification({ show: false, success: false, message: '' });
+      }, 3000);
+    })
+    .catch(error => {
+      console.error('Error submitting team booking form:', error);
+      setNotification({ 
+        show: true, 
+        success: false, 
+        message: 'Failed to submit booking request. Please try again.' 
+      });
+      setTimeout(() => {
+        setNotification({ show: false, success: false, message: '' });
+      }, 3000);
+    });
+  }
+
+  return (
+    <div
+      className="book-team-page"
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '80vh',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          minWidth: '100%',
+          minHeight: '100%',
+          width: 'auto',
+          height: 'auto',
+          transform: 'translate(-50%, -50%)',
+          zIndex: -1,
+          objectFit: 'cover',
+          opacity: 0.45
+        }}
+      >
+        <source src={process.env.PUBLIC_URL + '/videos/farm-bg.mp4'} type="video/mp4" />
+      </video>
+      <div style={{
+        background: 'rgba(255,255,255,0.95)',
+        padding: '2rem 2.5rem',
+        borderRadius: '16px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+        width: '100%',
+        maxWidth: 420,
+      }}>
+        <h2 style={{ textAlign: 'center', color: '#2e7d32', marginBottom: '1.5rem' }}>Book Our Team</h2>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ fontWeight: 'bold' }}>Name:</label><br />
+            <input name="name" value={form.name} onChange={handleChange} required style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ccc' }} />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ fontWeight: 'bold' }}>Contact Number:</label><br />
+            <input name="contact" value={form.contact} onChange={handleChange} required type="tel" inputMode="numeric" pattern="^[0-9]{10}$" maxLength="10" title="Enter a valid 10-digit phone number" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ccc' }} />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ fontWeight: 'bold' }}>Address:</label><br />
+            <textarea name="address" value={form.address} onChange={handleChange} required style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ccc', minHeight: '60px' }} />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ fontWeight: 'bold' }}>Land Image:</label><br />
+            <input type="file" name="landImage" accept="image/*" onChange={handleChange} required style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ccc' }} />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ fontWeight: 'bold' }}>Crop Planted (optional):</label><br />
+            <input name="crop" value={form.crop} onChange={handleChange} style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #ccc' }} />
+          </div>
+          <button type="submit" style={{ width: '100%', padding: '0.75rem', background: '#2e7d32', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 2px 8px rgba(46,125,50,0.08)' }}>Submit</button>
+        </form>
+        {submitted && <div style={{ color: '#2e7d32', marginTop: 20, textAlign: 'center', fontWeight: 'bold' }}>Thank you! We received your details.</div>}
+      </div>
+      
+      {/* Toast Notification */}
+      {notification.show && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 9999,
+          minWidth: '320px',
+          maxWidth: '400px',
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(10px)',
+          border: `3px solid ${notification.success ? '#4CAF50' : '#f44336'}`,
+          borderRadius: '12px',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+          overflow: 'hidden',
+          animation: 'toastSlideIn 0.5s ease-out'
+        }}>
+          {/* Colored header bar */}
+          <div style={{
+            background: notification.success 
+              ? 'linear-gradient(135deg, #4CAF50 0%, #81C784 100%)'
+              : 'linear-gradient(135deg, #f44336 0%, #e57373 100%)',
+            padding: '1em 1.5em',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1em'
+          }}>
+            <div style={{
+              fontSize: '2em',
+              animation: 'scaleIn 0.5s ease-out'
+            }}>
+              {notification.success ? '✓' : '✕'}
+            </div>
+            <div>
+              <h4 style={{ margin: 0, color: 'white', fontSize: '1.1em', fontWeight: 600 }}>
+                {notification.success ? 'Success!' : 'Error'}
+              </h4>
+            </div>
+          </div>
+
+          {/* Message content */}
+          <div style={{
+            padding: '1.5em',
+            color: '#333',
+            fontSize: '0.95em',
+            lineHeight: '1.6'
+          }}>
+            {notification.message}
+          </div>
+
+          {/* Progress bar */}
+          {notification.success && (
+            <div style={{
+              height: '4px',
+              background: '#e0e0e0',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                height: '100%',
+                background: '#4CAF50',
+                animation: 'progressBar 3s linear'
+              }} />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
