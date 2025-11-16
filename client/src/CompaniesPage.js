@@ -38,10 +38,15 @@ export default function CompaniesPage() {
       })
       .then(data => {
         console.log('Companies loaded:', data);
-        // Debug: Log logo URLs
+        // Debug: Log logo URLs and product flags
         data.forEach(company => {
           if (company.logo) {
             console.log(`Company: ${company.name}, Logo path: ${company.logo}, Full URL: ${imageUrl(company.logo)}`);
+          }
+          if (company.products) {
+            company.products.forEach((p, idx) => {
+              console.log(`  Product ${idx}: ${p.name}, showOrderButton:`, p.showOrderButton);
+            });
           }
         });
         setCompanies(data);
@@ -432,6 +437,7 @@ export default function CompaniesPage() {
                         }}>{product.description}</p>
                       )}
                       
+                      { (product.showOrderButton !== false) && (
                       <button
                         onClick={() => handleOrderClick(product, company)}
                         style={{
@@ -459,9 +465,10 @@ export default function CompaniesPage() {
                           e.target.style.transform = 'scale(1)';
                           e.target.style.boxShadow = 'none';
                         }}
-                      >
+                      > 
                         <span>🛒</span> Order Now
                       </button>
+                      )}
                     </div>
                   </div>
                 ))}

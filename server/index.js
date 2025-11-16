@@ -85,7 +85,6 @@ app.get('/api/submissions', async (req, res) => {
   if (googleSheetsUrl && googleSheetsSecret) {
     try {
       console.log('📊 Attempting to fetch from Google Sheets...');
-       showOrderButton: showOrderButton
       const url = `${googleSheetsUrl}?secret=${encodeURIComponent(googleSheetsSecret)}`;
       
       const response = await fetch(url);
@@ -178,7 +177,14 @@ app.get('/api/companies', async (req, res) => {
     if (db.isConfigured) {
       const result = await db.query(`
         SELECT c.id, c.name, c.description, c.logo,
-               json_agg(json_build_object('name', p.name, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
+               json_agg(
+                 json_build_object(
+                   'id', p.id,
+                   'name', p.name,
+                   'image', p.image,
+                   'showOrderButton', p.show_order_button
+                 ) ORDER BY p.id
+               ) FILTER (WHERE p.id IS NOT NULL) as products
         FROM companies c
         LEFT JOIN products p ON c.id = p.company_id
         GROUP BY c.id, c.name, c.description, c.logo
@@ -203,7 +209,17 @@ app.get('/api/companies', async (req, res) => {
     
     if (fs.existsSync(companiesPath)) {
       const data = fs.readFileSync(companiesPath, 'utf8');
-      const companies = JSON.parse(data);
+      let companies = JSON.parse(data);
+      // Ensure each product has showOrderButton defaulting to true
+      companies = companies.map(c => ({
+        ...c,
+        products: Array.isArray(c.products)
+          ? c.products.map(p => ({
+              ...p,
+              showOrderButton: (p.showOrderButton === undefined) ? true : p.showOrderButton
+            }))
+          : []
+      }));
       console.log('✅ Companies loaded from file:', companies.length);
       res.json(companies);
     } else {
@@ -457,14 +473,17 @@ app.post('/api/companies/:companyId/products', upload.single('image'), async (re
   try {
     // If database is configured, use it
     if (db.isConfigured) {
+      const showOrder = (typeof req.body.showOrderButton === 'undefined')
+        ? true
+        : (req.body.showOrderButton === 'true' || req.body.showOrderButton === true);
       await db.query(
         'INSERT INTO products (company_id, name, image, show_order_button) VALUES ($1, $2, $3, $4)',
-        [req.params.companyId, req.body.name, imagePath, req.body.showOrderButton === 'true' || req.body.showOrderButton === true]
+        [req.params.companyId, req.body.name, imagePath, showOrder]
       );
       
       const result = await db.query(`
-        SELECT c.id, c.name, c.description, c.logo,
-               json_agg(json_build_object('name', p.name, 'image', p.image, 'showOrderButton', p.show_order_button)) FILTER (WHERE p.id IS NOT NULL) as products
+         SELECT c.id, c.name, c.description, c.logo,
+           json_agg(json_build_object('id', p.id, 'name', p.name, 'image', p.image, 'showOrderButton', COALESCE(p.show_order_button, true)) ORDER BY p.id) FILTER (WHERE p.id IS NOT NULL) as products
         FROM companies c
         LEFT JOIN products p ON c.id = p.company_id
         WHERE c.id = $1
@@ -507,9 +526,12 @@ app.post('/api/companies/:companyId/products', upload.single('image'), async (re
     if (!company.products) company.products = [];
     
     const newProduct = {
+      id: Date.now(),
       name: req.body.name,
       image: imagePath,
-      showOrderButton: req.body.showOrderButton === 'true' || req.body.showOrderButton === true
+      showOrderButton: (typeof req.body.showOrderButton === 'undefined')
+        ? true
+        : (req.body.showOrderButton === 'true' || req.body.showOrderButton === true)
     };
     
     company.products.push(newProduct);
@@ -524,12 +546,12 @@ app.post('/api/companies/:companyId/products', upload.single('image'), async (re
 });
 
 // Update product in company
-app.put('/api/companies/:companyId/products/:productIndex', upload.single('image'), async (req, res) => {
-  console.log('📝 PUT /api/companies/:companyId/products/:productIndex - Updating product');
+app.put('/api/companies/:companyId/products/:productId', upload.single('image'), async (req, res) => {
+  console.log('📝 PUT /api/companies/:companyId/products/:productId - Updating product');
   console.log('📝 Company ID:', req.params.companyId);
-  console.log('📝 Product Index:', req.params.productIndex);
+  console.log('📝 Product ID:', req.params.productId);
   
-  const { companyId, productIndex } = req.params;
+  const { companyId, productId } = req.params;
   let imagePath = req.body.image !== undefined ? req.body.image : undefined;
   
   // Upload to Cloudinary if new file provided
@@ -547,17 +569,15 @@ app.put('/api/companies/:companyId/products/:productIndex', upload.single('image
   try {
     // If database is configured, use it
     if (db.isConfigured) {
+      // Verify product exists and belongs to this company
       const getResult = await db.query(`
         SELECT id FROM products 
-        WHERE company_id = $1 
-        ORDER BY id LIMIT 1 OFFSET $2
-      `, [companyId, parseInt(productIndex)]);
+        WHERE id = $1 AND company_id = $2
+      `, [productId, companyId]);
       
       if (getResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Product not found' });
+        return res.status(404).json({ error: 'Product not found or does not belong to this company' });
       }
-      
-      const productId = getResult.rows[0].id;
       
       let updateQuery = 'UPDATE products SET name = $1';
       let params = [req.body.name];
@@ -581,7 +601,7 @@ app.put('/api/companies/:companyId/products/:productIndex', upload.single('image
       
       const result = await db.query(`
         SELECT c.id, c.name, c.description, c.logo,
-               json_agg(json_build_object('name', p.name, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
+               json_agg(json_build_object('id', p.id, 'name', p.name, 'image', p.image, 'showOrderButton', p.show_order_button) ORDER BY p.id) FILTER (WHERE p.id IS NOT NULL) as products
         FROM companies c
         LEFT JOIN products p ON c.id = p.company_id
         WHERE c.id = $1
@@ -612,15 +632,17 @@ app.put('/api/companies/:companyId/products/:productIndex', upload.single('image
     let companies = JSON.parse(data);
     
     const company = companies.find(c => c.id == companyId);
-    const idx = parseInt(productIndex);
+    const productIdx = company?.products?.findIndex(p => p.id == productId);
     
-    if (!company || !company.products || company.products[idx] === undefined) {
+    if (!company || !company.products || productIdx === -1 || productIdx === undefined) {
       return res.status(404).json({ error: 'Company or product not found' });
     }
     
-    company.products[idx] = {
+    company.products[productIdx] = {
+      id: company.products[productIdx].id,
       name: req.body.name,
-      image: imagePath !== undefined ? imagePath : company.products[idx].image
+      image: imagePath !== undefined ? imagePath : company.products[productIdx].image,
+      showOrderButton: req.body.showOrderButton === 'true' || req.body.showOrderButton === true
     };
     
     fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
@@ -634,32 +656,38 @@ app.put('/api/companies/:companyId/products/:productIndex', upload.single('image
 });
 
 // Delete product from company
-app.delete('/api/companies/:companyId/products/:productIndex', async (req, res) => {
-  console.log('🗑️ DELETE /api/companies/:companyId/products/:productIndex - Deleting product');
+app.delete('/api/companies/:companyId/products/:productId', async (req, res) => {
+  console.log('🗑️ DELETE /api/companies/:companyId/products/:productId - Deleting product');
   console.log('📝 Company ID:', req.params.companyId);
-  console.log('📝 Product Index:', req.params.productIndex);
+  console.log('📝 Product ID:', req.params.productId);
   
-  const { companyId, productIndex } = req.params;
+  const { companyId, productId } = req.params;
   
   try {
     // If database is configured, use it
     if (db.isConfigured) {
+      // Verify product exists and belongs to this company
       const getResult = await db.query(`
         SELECT id FROM products 
-        WHERE company_id = $1 
-        ORDER BY id LIMIT 1 OFFSET $2
-      `, [companyId, parseInt(productIndex)]);
+        WHERE id = $1 AND company_id = $2
+      `, [productId, companyId]);
       
       if (getResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Product not found' });
+        return res.status(404).json({ error: 'Product not found or does not belong to this company' });
       }
       
-      const productId = getResult.rows[0].id;
       await db.query('DELETE FROM products WHERE id = $1', [productId]);
       
       const result = await db.query(`
         SELECT c.id, c.name, c.description, c.logo,
-               json_agg(json_build_object('name', p.name, 'price', p.price, 'image', p.image)) FILTER (WHERE p.id IS NOT NULL) as products
+               json_agg(
+                 json_build_object(
+                   'id', p.id,
+                   'name', p.name,
+                   'image', p.image,
+                   'showOrderButton', COALESCE(p.show_order_button, true)
+                 ) ORDER BY p.id
+               ) FILTER (WHERE p.id IS NOT NULL) as products
         FROM companies c
         LEFT JOIN products p ON c.id = p.company_id
         WHERE c.id = $1
@@ -690,13 +718,13 @@ app.delete('/api/companies/:companyId/products/:productIndex', async (req, res) 
     let companies = JSON.parse(data);
     
     const company = companies.find(c => c.id == companyId);
-    const idx = parseInt(productIndex);
+    const productIdx = company?.products?.findIndex(p => p.id == productId);
     
-    if (!company || !company.products || company.products[idx] === undefined) {
+    if (!company || !company.products || productIdx === -1 || productIdx === undefined) {
       return res.status(404).json({ error: 'Company or product not found' });
     }
     
-    company.products.splice(idx, 1);
+    company.products.splice(productIdx, 1);
     fs.writeFileSync(companiesPath, JSON.stringify(companies, null, 2));
     
     console.log('✅ Product deleted successfully from JSON file');

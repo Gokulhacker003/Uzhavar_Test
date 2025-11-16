@@ -5,7 +5,7 @@ export default function AdminCompaniesPage({ onLogout }) {
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState({ name: '', description: '', logo: '', logoFile: null });
   const [editingId, setEditingId] = useState(null);
-  const [productForm, setProductForm] = useState({ name: '', image: '', imageFile: null, showOrderButton: false });
+  const [productForm, setProductForm] = useState({ name: '', image: '', imageFile: null, showOrderButton: true });
   const [activeProductCompanyId, setActiveProductCompanyId] = useState(null);
   const [expandedCompanies, setExpandedCompanies] = useState(new Set());
 
@@ -161,7 +161,7 @@ export default function AdminCompaniesPage({ onLogout }) {
     .then(r => r.json())
     .then(updated => {
       setCompanies(prev => prev.map(c => c.id === companyId ? updated : c));
-      setProductForm({ name: '', image: '', imageFile: null, showOrderButton: false });
+      setProductForm({ name: '', image: '', imageFile: null, showOrderButton: true });
       setActiveProductCompanyId(null);
       alert('✓ Product added successfully!');
     })
@@ -171,9 +171,11 @@ export default function AdminCompaniesPage({ onLogout }) {
     });
   }
 
-  function handleUpdateProduct(e, companyId, productIndex) {
+  function handleUpdateProduct(e, companyId, productId) {
     e.preventDefault();
     if (!productForm.name.trim()) return;
+
+    console.log('🔄 UPDATE REQUEST:', { companyId, productId, name: productForm.name });
 
     const formData = new FormData();
     formData.append('name', productForm.name);
@@ -184,14 +186,17 @@ export default function AdminCompaniesPage({ onLogout }) {
       formData.append('image', productForm.image);
     }
 
-    fetch(apiUrl(`/api/companies/${companyId}/products/${productIndex}`), {
+    const url = apiUrl(`/api/companies/${companyId}/products/${productId}`);
+    console.log('📡 API URL:', url);
+
+    fetch(url, {
       method: 'PUT',
       body: formData
     })
     .then(r => r.json())
     .then(updated => {
       setCompanies(prev => prev.map(c => c.id === companyId ? updated : c));
-      setProductForm({ name: '', image: '', imageFile: null, showOrderButton: false });
+      setProductForm({ name: '', image: '', imageFile: null, showOrderButton: true });
       setActiveProductCompanyId(null);
       alert('✓ Product updated successfully!');
     })
@@ -201,17 +206,13 @@ export default function AdminCompaniesPage({ onLogout }) {
     });
   }
 
-  function handleRemoveProduct(companyId, idx) {
+  function handleRemoveProduct(companyId, productId) {
     if (!window.confirm('Are you sure you want to remove this product?')) return;
 
-    fetch(apiUrl(`/api/companies/${companyId}/products/${idx}`), { method: 'DELETE' })
+    fetch(apiUrl(`/api/companies/${companyId}/products/${productId}`), { method: 'DELETE' })
       .then(r => r.json())
-      .then(() => {
-        setCompanies(prev => prev.map(c => 
-          c.id === companyId 
-            ? { ...c, products: c.products.filter((_, i) => i !== idx) } 
-            : c
-        ));
+      .then(updated => {
+        setCompanies(prev => prev.map(c => c.id === companyId ? updated : c));
         alert('✓ Product removed successfully!');
       })
       .catch(err => {
@@ -235,7 +236,13 @@ export default function AdminCompaniesPage({ onLogout }) {
   useEffect(() => {
     fetch(apiUrl('/api/companies'))
       .then(r => r.json())
-      .then(data => setCompanies(data))
+      .then(data => {
+        console.log('📦 COMPANIES LOADED:', data);
+        data.forEach(company => {
+          console.log(`Company: ${company.name}, Products:`, company.products);
+        });
+        setCompanies(data);
+      })
       .catch(err => {
         console.error('Failed to load companies', err);
         setCompanies([]);
@@ -758,7 +765,7 @@ export default function AdminCompaniesPage({ onLogout }) {
                           <button
                             onClick={() => {
                               setActiveProductCompanyId(company.id);
-                              setProductForm({ name: '', image: '', imageFile: null, showOrderButton: false, editIndex: null });
+                              setProductForm({ name: '', image: '', imageFile: null, showOrderButton: true, editProductId: null });
                             }}
                             aria-label={`Add product to ${company.name}`}
                             style={{
@@ -803,7 +810,7 @@ export default function AdminCompaniesPage({ onLogout }) {
                             }}>
                               {company.products.map((product, idx) => (
                                 <div
-                                  key={idx}
+                                  key={product.id || idx}
                                   style={{
                                     background: '#fff',
                                     borderRadius: theme.borderRadius,
@@ -825,7 +832,7 @@ export default function AdminCompaniesPage({ onLogout }) {
                                   <div style={{
                                     width: '100%',
                                     height: 150,
-                                    background: product.image ? 'transparent' : '#f0f0f0',
+                                    background: product.image ? '#f8f8f8' : '#f0f0f0',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -836,9 +843,10 @@ export default function AdminCompaniesPage({ onLogout }) {
                                         src={imageUrl(product.image)}
                                         alt={product.name}
                                         style={{
-                                          width: '100%',
-                                          height: '100%',
-                                          objectFit: 'cover'
+                                          maxWidth: '100%',
+                                          maxHeight: '100%',
+                                          objectFit: 'contain',
+                                          padding: '0.5rem'
                                         }}
                                       />
                                     ) : (
@@ -864,13 +872,19 @@ export default function AdminCompaniesPage({ onLogout }) {
                                     }}>
                                       <button
                                         onClick={() => {
+                                          console.log('✏️ EDIT CLICKED:', { 
+                                            productName: product.name, 
+                                            productId: product.id, 
+                                            companyId: company.id,
+                                            fullProduct: product 
+                                          });
                                           setActiveProductCompanyId(company.id);
                                           setProductForm({
                                             name: product.name,
                                             image: product.image || '',
                                             imageFile: null,
-                                            showOrderButton: product.showOrderButton || false,
-                                            editIndex: idx
+                                            showOrderButton: (product.showOrderButton === undefined) ? true : product.showOrderButton,
+                                            editProductId: product.id
                                           });
                                         }}
                                         aria-label={`Edit product ${product.name}`}
@@ -899,7 +913,7 @@ export default function AdminCompaniesPage({ onLogout }) {
                                       </button>
 
                                       <button
-                                        onClick={() => handleRemoveProduct(company.id, idx)}
+                                        onClick={() => handleRemoveProduct(company.id, product.id)}
                                         aria-label={`Remove product ${product.name}`}
                                         style={{
                                           flex: 1,
@@ -942,15 +956,15 @@ export default function AdminCompaniesPage({ onLogout }) {
                               fontSize: '1.1em',
                               fontWeight: 700
                             }}>
-                              {productForm.editIndex !== null && productForm.editIndex !== undefined
+                              {productForm.editProductId !== null && productForm.editProductId !== undefined
                                 ? '✏️ Edit Product'
                                 : '➕ Add New Product'}
                             </h5>
 
                             <form
                               onSubmit={e => {
-                                if (productForm.editIndex !== null && productForm.editIndex !== undefined) {
-                                  handleUpdateProduct(e, company.id, productForm.editIndex);
+                                if (productForm.editProductId !== null && productForm.editProductId !== undefined) {
+                                  handleUpdateProduct(e, company.id, productForm.editProductId);
                                 } else {
                                   handleAddProduct(e, company.id);
                                 }
@@ -1108,7 +1122,7 @@ export default function AdminCompaniesPage({ onLogout }) {
                                   onMouseEnter={e => e.target.style.background = theme.primaryLight}
                                   onMouseLeave={e => e.target.style.background = theme.primaryColor}
                                 >
-                                  {productForm.editIndex !== null && productForm.editIndex !== undefined
+                                  {productForm.editProductId !== null && productForm.editProductId !== undefined
                                     ? '✓ Update'
                                     : '+ Add'}
                                 </button>
@@ -1117,7 +1131,7 @@ export default function AdminCompaniesPage({ onLogout }) {
                                   type="button"
                                   onClick={() => {
                                     setActiveProductCompanyId(null);
-                                    setProductForm({ name: '', image: '', imageFile: null, showOrderButton: false });
+                                    setProductForm({ name: '', image: '', imageFile: null, showOrderButton: true });
                                   }}
                                   style={{
                                     flex: 1,
