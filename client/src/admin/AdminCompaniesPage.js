@@ -175,8 +175,6 @@ export default function AdminCompaniesPage({ onLogout }) {
     e.preventDefault();
     if (!productForm.name.trim()) return;
 
-    console.log('🔄 UPDATE REQUEST:', { companyId, productId, name: productForm.name });
-
     const formData = new FormData();
     formData.append('name', productForm.name);
     formData.append('showOrderButton', productForm.showOrderButton);
@@ -186,10 +184,7 @@ export default function AdminCompaniesPage({ onLogout }) {
       formData.append('image', productForm.image);
     }
 
-    const url = apiUrl(`/api/companies/${companyId}/products/${productId}`);
-    console.log('📡 API URL:', url);
-
-    fetch(url, {
+    fetch(apiUrl(`/api/companies/${companyId}/products/${productId}`), {
       method: 'PUT',
       body: formData
     })
@@ -236,13 +231,7 @@ export default function AdminCompaniesPage({ onLogout }) {
   useEffect(() => {
     fetch(apiUrl('/api/companies'))
       .then(r => r.json())
-      .then(data => {
-        console.log('📦 COMPANIES LOADED:', data);
-        data.forEach(company => {
-          console.log(`Company: ${company.name}, Products:`, company.products);
-        });
-        setCompanies(data);
-      })
+      .then(data => setCompanies(data))
       .catch(err => {
         console.error('Failed to load companies', err);
         setCompanies([]);
@@ -872,12 +861,6 @@ export default function AdminCompaniesPage({ onLogout }) {
                                     }}>
                                       <button
                                         onClick={() => {
-                                          console.log('✏️ EDIT CLICKED:', { 
-                                            productName: product.name, 
-                                            productId: product.id, 
-                                            companyId: company.id,
-                                            fullProduct: product 
-                                          });
                                           setActiveProductCompanyId(company.id);
                                           setProductForm({
                                             name: product.name,

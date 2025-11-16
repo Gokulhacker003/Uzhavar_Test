@@ -216,14 +216,6 @@ export default function CompaniesPage() {
             </div>
             <div style={{ fontSize: '0.8em', color: '#999', marginTop: '0.2em' }}>Products</div>
           </div>
-          <div style={{
-            width: 1,
-            background: '#e0e0e0'
-          }} />
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5em', fontWeight: 'bold', color: '#388e3c' }}>★</div>
-            <div style={{ fontSize: '0.8em', color: '#999', marginTop: '0.2em' }}>Featured</div>
-          </div>
         </div>
       </div>
     </div>
