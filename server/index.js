@@ -26,6 +26,7 @@ const upload = multer({
   }
 });
 
+
 const allowedOrigins = [
   'https://www.uzhavarconnect.com',        // Custom production domain
   'https://uzhavarconnect.com',            // Custom production domain (without www)
