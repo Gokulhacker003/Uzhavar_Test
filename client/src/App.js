@@ -3,13 +3,14 @@ import ConfirmPlan from './ConfirmPlan';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminLogin from './admin/AdminLogin';
 import ProtectedRoute from './admin/ProtectedRoute';
+import { AdminAuthProvider } from './admin/AdminAuthProvider';
 import 'leaflet/dist/leaflet.css';
 import CompaniesPage from './CompaniesPage';
 import RequestQuotePage from './RequestQuotePage';
 import ProjectsPage from './ProjectsPage';
 import FarmDetailsPage from './FarmDetailsPage';
 import BookTeamPage from './BookTeamPage';
-import { BrowserRouter as Router, Routes, Route, Link, NavLink } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
 import './App.css';
 import AboutPage from './pages/AboutPage';
 import projects from './data/projects';
@@ -170,6 +171,39 @@ function App() {
 
   return (
     <Router>
+      <AppContent 
+        notification={notification}
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        currentSlide={currentSlide}
+        showSoilTestModal={showSoilTestModal}
+        setShowSoilTestModal={setShowSoilTestModal}
+        soilTestForm={soilTestForm}
+        handleSoilTestChange={handleSoilTestChange}
+        handleSoilTestSubmit={handleSoilTestSubmit}
+        showProjectForm={showProjectForm}
+        setShowProjectForm={setShowProjectForm}
+        projectForm={projectForm}
+        handleProjectInput={handleProjectInput}
+        handleProjectSubmit={handleProjectSubmit}
+        projectSubmitted={projectSubmitted}
+        isSubmitting={isSubmitting}
+      />
+    </Router>
+  );
+}
+
+function AppContent({ 
+  notification, isMenuOpen, setIsMenuOpen, currentSlide, 
+  showSoilTestModal, setShowSoilTestModal, soilTestForm, 
+  handleSoilTestChange, handleSoilTestSubmit, showProjectForm, 
+  setShowProjectForm, projectForm, handleProjectInput, 
+  handleProjectSubmit, projectSubmitted, isSubmitting 
+}) {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
+
+  return (
       <div className="app" style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
         {/* Toast Notification for Farm Submission */}
         {notification.show && (
@@ -259,6 +293,7 @@ function App() {
         >
           <source src={process.env.PUBLIC_URL + '/videos/farm-bg.mp4'} type="video/mp4" />
         </video>
+        {!isAdminPage && (
         <nav className="navbar" style={{ minHeight: '44px', padding: '0 1em', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
           <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '44px' }}>
             <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5em', fontSize: '1em' }}>
@@ -302,6 +337,7 @@ function App() {
             </ul>
           </div>
         </nav>
+        )}
 
         <ScrollToTop />
         
@@ -334,14 +370,20 @@ function App() {
             <Route path="/join" element={<JoinUsPage />} />
             <Route path="/confirm-plan" element={<ConfirmPlan />} />
             
-            {/* Admin Login Route */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+            {/* Admin Routes - Wrapped with Auth Provider */}
+            <Route path="/admin/login" element={
+              <AdminAuthProvider>
+                <AdminLogin />
+              </AdminAuthProvider>
+            } />
             
             {/* Protected Admin Dashboard with all admin pages */}
             <Route path="/admin/*" element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
+              <AdminAuthProvider>
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              </AdminAuthProvider>
             } />
           </Routes>
           {/* Soil Test Modal for Fertilizer Plan - only rendered in App */}
@@ -440,7 +482,6 @@ function App() {
           </div>
         </footer>
       </div>
-    </Router>
   );
 }
 

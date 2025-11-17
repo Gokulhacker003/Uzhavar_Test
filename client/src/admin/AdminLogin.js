@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { authHelper } from "./authHelper";
+import { useAdminAuth } from "./AdminAuthProvider";
 
 export default function AdminLogin() {
   const [username, setUsername] = useState("");
@@ -8,13 +8,14 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useAdminAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (authHelper.isAuthenticated()) {
+    if (isAuthenticated) {
       navigate('/admin/companies', { replace: true });
     }
-  }, [navigate]);
+  }, [isAuthenticated, navigate]);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -23,7 +24,7 @@ export default function AdminLogin() {
 
     // Simulate slight delay for better UX
     setTimeout(() => {
-      const result = authHelper.login(username, password);
+      const result = login(username, password);
       
       if (result.success) {
         // Redirect to admin dashboard on successful login
