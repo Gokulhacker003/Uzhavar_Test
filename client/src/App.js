@@ -22,6 +22,7 @@ import JoinUsPage from './pages/JoinUsPage';
 import LandPage from './pages/LandPage';
 import ConstructionPage from './pages/ConstructionPage';
 import OurServicesPage from './pages/OurServicesPage';
+import DeveloperInfoPage from './pages/DeveloperInfoPage';
 import ScrollToTop from './ScrollToTop';
 import { apiUrl } from './api';
 // ...existing code...
@@ -34,6 +35,9 @@ import { apiUrl } from './api';
 function App() {
   // Notification state for farm submission redirect
   const [notification, setNotification] = useState({ show: false, success: false, message: '' });
+  
+  // Language state for Google Translate
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   // Check for notification from farm details submission
   useEffect(() => {
@@ -51,7 +55,25 @@ function App() {
         }, 3000);
       }
     }
+    
+    // Check localStorage for saved language preference
+    const savedLang = localStorage.getItem('selectedLang') || 'en';
+    setCurrentLanguage(savedLang);
   }, []);
+  
+  // Language change function
+  const setCookie = (name, value, days) => {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/';
+  };
+
+  const changeLanguage = (lang) => {
+    const googleTransCookie = '/en/' + lang;
+    setCookie('googtrans', googleTransCookie, 1);
+    localStorage.setItem('selectedLang', lang);
+    setCurrentLanguage(lang);
+    window.location.reload();
+  };
 
   // Modal state for Book a Project (legacy, not used)
   // const [showProjectModal, setShowProjectModal] = useState(false);
@@ -173,6 +195,8 @@ function App() {
     <Router>
       <AppContent 
         notification={notification}
+        currentLanguage={currentLanguage}
+        changeLanguage={changeLanguage}
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
         currentSlide={currentSlide}
@@ -194,7 +218,7 @@ function App() {
 }
 
 function AppContent({ 
-  notification, isMenuOpen, setIsMenuOpen, currentSlide, 
+  notification, currentLanguage, changeLanguage, isMenuOpen, setIsMenuOpen, currentSlide, 
   showSoilTestModal, setShowSoilTestModal, soilTestForm, 
   handleSoilTestChange, handleSoilTestSubmit, showProjectForm, 
   setShowProjectForm, projectForm, handleProjectInput, 
@@ -202,6 +226,11 @@ function AppContent({
 }) {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname, setIsMenuOpen]);
 
   return (
       <div className="app" style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
@@ -294,12 +323,12 @@ function AppContent({
           <source src={process.env.PUBLIC_URL + '/videos/farm-bg.mp4'} type="video/mp4" />
         </video>
         {!isAdminPage && (
-        <nav className="navbar" style={{ minHeight: '44px', padding: '0 1em', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-          <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '44px' }}>
-            <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5em', fontSize: '1em' }}>
-              <img src={process.env.PUBLIC_URL + '/assert/logo.png'} alt="Uzhavar Connect Logo" className="logo-icon" style={{ height: '32px', width: 'auto' }} />
+        <nav className="navbar" style={{ minHeight: '70px', padding: '0 1.5em', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+          <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '70px' }}>
+            <Link to="/" onClick={() => setIsMenuOpen(false)} className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5em', fontSize: '1.1em', textDecoration: 'none' }}>
+              <img src={process.env.PUBLIC_URL + '/assert/logo.png'} alt="Uzhavar Connect Logo" className="logo-icon" style={{ height: '45px', width: 'auto' }} />
               <span className="logo-text" style={{ fontWeight: 700, color: '#388e3c' }}>Uzhavar Connect</span>
-            </div>
+            </Link>
             
             {/* Show burger on both mobile and desktop */}
             <button
@@ -334,6 +363,85 @@ function AppContent({
               <li><NavLink to="/construction" onClick={() => setIsMenuOpen(false)}>Construction</NavLink></li>
               <li><NavLink to="/projects" onClick={() => setIsMenuOpen(false)}>Past Work</NavLink></li>
               <li><NavLink to="/join" onClick={() => setIsMenuOpen(false)}>Join Us</NavLink></li>
+              
+              {/* Language Selection */}
+              <li style={{ borderTop: '1px solid #e2e8f0', marginTop: '12px', paddingTop: '12px', paddingBottom: '12px' }}>
+                <div style={{ padding: '0 16px 10px 16px', fontSize: '0.75rem', fontWeight: '600', color: '#718096', textAlign: 'center', letterSpacing: '0.5px' }}>
+                  🌐 LANGUAGE / மொழி
+                </div>
+                <div style={{ display: 'flex', gap: '8px', padding: '0 16px', flexWrap: 'nowrap' }}>
+                  <button
+                    onClick={() => {
+                      changeLanguage('en');
+                      setIsMenuOpen(false);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '12px 16px',
+                      fontSize: '14px',
+                      fontWeight: currentLanguage === 'en' ? '700' : '500',
+                      color: currentLanguage === 'en' ? '#fff' : '#4a5568',
+                      backgroundColor: currentLanguage === 'en' ? '#C9A86A' : '#fff',
+                      border: '2px solid',
+                      borderColor: currentLanguage === 'en' ? '#C9A86A' : '#e2e8f0',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: currentLanguage === 'en' ? '0 2px 8px rgba(201, 168, 106, 0.3)' : 'none',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentLanguage !== 'en') {
+                        e.target.style.borderColor = '#C9A86A';
+                        e.target.style.backgroundColor = '#faf8f5';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (currentLanguage !== 'en') {
+                        e.target.style.borderColor = '#e2e8f0';
+                        e.target.style.backgroundColor = '#fff';
+                      }
+                    }}
+                  >
+                    EN
+                  </button>
+                  <button
+                    onClick={() => {
+                      changeLanguage('ta');
+                      setIsMenuOpen(false);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '12px 16px',
+                      fontSize: '14px',
+                      fontWeight: currentLanguage === 'ta' ? '700' : '500',
+                      color: currentLanguage === 'ta' ? '#fff' : '#4a5568',
+                      backgroundColor: currentLanguage === 'ta' ? '#C9A86A' : '#fff',
+                      border: '2px solid',
+                      borderColor: currentLanguage === 'ta' ? '#C9A86A' : '#e2e8f0',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: currentLanguage === 'ta' ? '0 2px 8px rgba(201, 168, 106, 0.3)' : 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentLanguage !== 'ta') {
+                        e.target.style.borderColor = '#C9A86A';
+                        e.target.style.backgroundColor = '#faf8f5';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (currentLanguage !== 'ta') {
+                        e.target.style.borderColor = '#e2e8f0';
+                        e.target.style.backgroundColor = '#fff';
+                      }
+                    }}
+                  >
+                    தமிழ்
+                  </button>
+                </div>
+              </li>
             </ul>
           </div>
         </nav>
@@ -368,6 +476,7 @@ function AppContent({
             <Route path="/request-quote" element={<RequestQuotePage />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/join" element={<JoinUsPage />} />
+            <Route path="/developer-info" element={<DeveloperInfoPage />} />
             <Route path="/confirm-plan" element={<ConfirmPlan />} />
             
             {/* Admin Routes - Wrapped with Auth Provider */}
@@ -441,6 +550,20 @@ function AppContent({
                 <li><Link to="/contact">Contact</Link></li>
                 <li><Link to="/privacy-policy">Privacy Policy</Link></li>
                 <li><Link to="/join">Careers</Link></li>
+                <li className="developer-info-highlight">
+                  <Link to="/developer-info" style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    display: 'inline-block',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    ✨ Developer Info
+                  </Link>
+                </li>
               </ul>
             </div>
 

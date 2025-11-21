@@ -43,5 +43,67 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    
+    <!-- Google Translate Script -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'en',
+          includedLanguages: 'en,ta',
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+          autoDisplay: false
+        }, 'google_translate_element');
+      }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+    <!-- Hidden Google Translate Element -->
+    <div id="google_translate_element" style="display: none;"></div>
+    
+    <!-- CSS to hide Google Translate UI -->
+    <style>
+      /* Hide Google Translate banner and elements */
+      .goog-te-banner-frame.skiptranslate {
+        display: none !important;
+      }
+      
+      body {
+        top: 0px !important;
+      }
+      
+      .goog-te-balloon-frame {
+        display: none !important;
+      }
+      
+      .goog-tooltip {
+        display: none !important;
+      }
+      
+      .goog-tooltip:hover {
+        display: none !important;
+      }
+      
+      .goog-text-highlight {
+        background-color: transparent !important;
+        box-shadow: none !important;
+      }
+      
+      #google_translate_element {
+        display: none !important;
+      }
+      
+      .skiptranslate {
+        display: none !important;
+      }
+      
+      /* Hide Google Translate top frame */
+      iframe.skiptranslate {
+        display: none !important;
+      }
+      
+      body > .skiptranslate {
+        display: none !important;
+      }
+    </style>
   </body>
 </html>
