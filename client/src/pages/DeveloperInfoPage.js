@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCode, FaMobileAlt, FaServer, FaRobot, FaCog, FaLightbulb, FaHandshake, FaShieldAlt, FaHeart } from 'react-icons/fa';
+import {  FaMobileAlt, FaServer, FaRobot, FaCog, FaLightbulb, FaHandshake, FaShieldAlt, FaHeart } from 'react-icons/fa';
 import { MdWeb, MdEmail, MdPhone } from 'react-icons/md';
 import { BsCheckCircleFill } from 'react-icons/bs';
 import '../styles/DeveloperInfoPage.css';
@@ -12,7 +12,11 @@ function DeveloperInfoPage() {
         {/* Header Card */}
         <div className="dev-header-card">
           <div className="dev-logo-placeholder">
-            <FaCode className="dev-logo-icon" />
+            <img 
+              src={process.env.PUBLIC_URL + '/logo.jpeg'} 
+              alt="Netcraft Studio Logo" 
+              className="dev-logo-img"
+            />
           </div>
           <h1 className="company-name">Netcraft Studio</h1>
           <p className="company-tagline"></p>
