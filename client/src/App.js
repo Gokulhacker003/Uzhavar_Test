@@ -233,7 +233,7 @@ function AppContent({
   }, [location.pathname, setIsMenuOpen]);
 
   return (
-      <div className="app" style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
+      <div key={currentLanguage} className="app" style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
         {/* Toast Notification for Farm Submission */}
         {notification.show && (
           <div style={{
@@ -561,7 +561,7 @@ function AppContent({
                     boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                     transition: 'all 0.3s ease'
                   }}>
-                    ✨ Developer Info
+                    Developer Info
                   </Link>
                 </li>
               </ul>

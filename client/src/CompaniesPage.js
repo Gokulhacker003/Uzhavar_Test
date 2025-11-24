@@ -271,7 +271,7 @@ export default function CompaniesPage() {
                 e.target.style.transform = 'translateX(0)';
               }}
             >
-              <span>←</span> Back to Companies
+              <span>←</span>
             </button>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '2em', flexWrap: 'wrap' }}>
@@ -507,7 +507,7 @@ export default function CompaniesPage() {
   };
 
   return (
-    <div style={{ 
+    <div translate="" style={{ 
       minHeight: '100vh',
       background: 'transparent',
       paddingTop: '80px',
@@ -585,7 +585,6 @@ export default function CompaniesPage() {
                     alignItems: 'center',
                     gap: '0.5em'
                   }}>
-                    <span>🕐</span> Updated {lastUpdated.toLocaleTimeString()}
                   </div>
                 )}
                 <button 

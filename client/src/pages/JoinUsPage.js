@@ -1,9 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "leaflet/dist/leaflet.css";
 import { apiUrl } from '../api';
 import { FaUser, FaMapMarkerAlt, FaUserFriends, FaSeedling, FaTools } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+import '../i18n';
 
 export default function JoinUsPage() {
+  const { i18n } = useTranslation();
+  
+  // Sync with parent language selection
+  useEffect(() => {
+    const savedLang = localStorage.getItem('selectedLang') || 'en';
+    if (i18n.language !== savedLang) {
+      i18n.changeLanguage(savedLang);
+    }
+  }, [i18n]);
   const [userType, setUserType] = useState('');
   const [formData, setFormData] = useState({
     // Common fields
@@ -183,29 +194,33 @@ export default function JoinUsPage() {
 
   if (!userType) {
     return (
-      <div className="join-us-page">
+      <div className="join-us-page notranslate">
         <section className="page-header">
-          <h1><FaUserFriends /> Join Uzhavar Connect</h1>
-          <p>Choose your registration type to get started</p>
+          <h1><FaUserFriends /> {i18n.language === 'ta' ? 'உழவர் கனெக்ட்டில் சேருங்கள்' : 'Join Uzhavar Connect'}</h1>
+          <p>{i18n.language === 'ta' ? 'தொடங்க உங்கள் பதிவு வகையைத் தேர்ந்தெடுக்கவும்' : 'Choose your registration type to get started'}</p>
         </section>
         
         <div className="join-sections">
           <div className="join-section farmers">
             <div className="join-content" style={{ textAlign: 'center' }}>
-              <h2 style={{ textAlign: 'center' }}><FaSeedling /> Register as Farmer</h2>
-              <p style={{ textAlign: 'center' }}>Connect with agricultural services and grow your farming business</p>
+              <h2 style={{ textAlign: 'center' }}>
+                <FaSeedling /> {i18n.language === 'ta' ? 'விவசாயியாக பதிவு செய்யுங்கள்' : 'Register as Farmer'}
+              </h2>
+              <p style={{ textAlign: 'center' }}>
+                {i18n.language === 'ta' ? 'விவசாய சேவைகளுடன் இணைந்து உங்கள் விவசாய வணிகத்தை வளர்த்துக்கொள்ளுங்கள்' : 'Connect with agricultural services and grow your farming business'}
+              </p>
               <ul style={{ display: 'inline-block', textAlign: 'left', margin: '20px auto' }}>
-                <li>Get customized farming solutions</li>
-                <li>Access to modern agricultural techniques</li>
-                <li>Direct connection with service providers</li>
-                <li>Track progress via app or WhatsApp</li>
+                <li>{i18n.language === 'ta' ? 'தனிப்பயனாக்கப்பட்ட விவசாய தீர்வுகளைப் பெறுங்கள்' : 'Get customized farming solutions'}</li>
+                <li>{i18n.language === 'ta' ? 'நவீன விவசாய நுட்பங்களுக்கான அணுகல்' : 'Access to modern agricultural techniques'}</li>
+                <li>{i18n.language === 'ta' ? 'சேவை வழங்குநர்களுடன் நேரடி இணைப்பு' : 'Direct connection with service providers'}</li>
+                <li>{i18n.language === 'ta' ? 'செயலி அல்லது வாட்ஸ்அப் வழியாக முன்னேற்றத்தைக் கண்காணிக்கவும்' : 'Track progress via app or WhatsApp'}</li>
               </ul>
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
                 <button 
                   className="btn btn-primary" 
                   onClick={() => setUserType('farmer')}
                 >
-                  Register as Farmer
+                  {i18n.language === 'ta' ? 'விவசாயியாக பதிவு செய்யுங்கள்' : 'Register as Farmer'}
                 </button>
               </div>
             </div>
@@ -219,20 +234,24 @@ export default function JoinUsPage() {
               <img src="https://pub-b47a7c74540d40228598178154fb4b56.r2.dev/2023/10/Azure-OpenAI-Service-India-blog-hero.jpg" alt="Farm Workers" />
             </div>
             <div className="join-content" style={{ textAlign: 'center' }}>
-              <h2 style={{ textAlign: 'center' }}><FaTools /> Register as Worker/Contractor</h2>
-              <p style={{ textAlign: 'center' }}>Join our network of skilled agricultural professionals</p>
+              <h2 style={{ textAlign: 'center' }}>
+                <FaTools /> {i18n.language === 'ta' ? 'தொழிலாளி/ஒப்பந்ததாரராக பதிவு செய்யுங்கள்' : 'Register as Worker/Contractor'}
+              </h2>
+              <p style={{ textAlign: 'center' }}>
+                {i18n.language === 'ta' ? 'திறமையான விவசாய வல்லுநர்களின் எங்கள் வலையமைப்பில் சேருங்கள்' : 'Join our network of skilled agricultural professionals'}
+              </p>
               <ul style={{ display: 'inline-block', textAlign: 'left', margin: '20px auto' }}>
-                <li>Weekly payments for completed work</li>
-                <li>Performance-based job opportunities</li>
-                <li>Training and skill development</li>
-                <li>Flexible working arrangements</li>
+                <li>{i18n.language === 'ta' ? 'முடிக்கப்பட்ட வேலைக்கான வாராந்திர கொடுப்பனவுகள்' : 'Weekly payments for completed work'}</li>
+                <li>{i18n.language === 'ta' ? 'செயல்திறன் அடிப்படையிலான வேலை வாய்ப்புகள்' : 'Performance-based job opportunities'}</li>
+                <li>{i18n.language === 'ta' ? 'பயிற்சி மற்றும் திறன் மேம்பாடு' : 'Training and skill development'}</li>
+                <li>{i18n.language === 'ta' ? 'நெகிழ்வான பணி ஏற்பாடுகள்' : 'Flexible working arrangements'}</li>
               </ul>
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
                 <button 
                   className="btn btn-primary" 
                   onClick={() => setUserType('worker')}
                 >
-                  Register as Worker/Contractor
+                  {i18n.language === 'ta' ? 'தொழிலாளி/ஒப்பந்ததாரராக பதிவு செய்யுங்கள்' : 'Register as Worker/Contractor'}
                 </button>
               </div>
             </div>
@@ -243,13 +262,16 @@ export default function JoinUsPage() {
   }
 
   return (
-    <div className="join-us-page">
+    <div className="join-us-page notranslate">
       <section className="page-header">
         <h1>
           {userType === 'farmer' ? <FaSeedling /> : <FaTools />}
-          {userType === 'farmer' ? 'Farmer Registration' : 'Worker/Contractor Registration'}
+          {userType === 'farmer' 
+            ? (i18n.language === 'ta' ? 'விவசாயி பதிவு' : 'Farmer Registration')
+            : (i18n.language === 'ta' ? 'தொழிலாளி/ஒப்பந்ததாரர் பதிவு' : 'Worker/Contractor Registration')
+          }
         </h1>
-        <p>Please fill out all required information</p>
+        <p>{i18n.language === 'ta' ? 'தயவுசெய்து அனைத்து தேவையான தகவல்களையும் நிரப்பவும்' : 'Please fill out all required information'}</p>
         <button 
           onClick={resetForm}
           style={{

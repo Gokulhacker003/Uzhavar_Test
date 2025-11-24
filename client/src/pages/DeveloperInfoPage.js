@@ -15,7 +15,7 @@ function DeveloperInfoPage() {
             <FaCode className="dev-logo-icon" />
           </div>
           <h1 className="company-name">Netcraft Studio</h1>
-          <p className="company-tagline">Innovative IT Solutions for the Digital World</p>
+          <p className="company-tagline"></p>
         </div>
 
         {/* About Section */}
@@ -79,7 +79,7 @@ function DeveloperInfoPage() {
         </div>
 
         {/* Vision Section */}
-        <div className="dev-card dev-highlight">
+        <div className="dev-header-card">
           <h2 className="dev-section-title">Our Vision</h2>
           <p className="dev-text">
             To become a leading global tech solutions provider known for creativity, quality, and long-term client success.
@@ -131,7 +131,7 @@ function DeveloperInfoPage() {
         </div>
 
         {/* Our Promise */}
-        <div className="dev-card dev-promise">
+        <div className="dev-header-card">
           <h2 className="dev-section-title">
             <FaHeart className="title-icon" /> Our Promise
           </h2>
@@ -156,7 +156,7 @@ function DeveloperInfoPage() {
         </div>
 
         {/* Contact Section */}
-        <div className="dev-card dev-contact">
+        <div className="dev-header-card">
           <h2 className="dev-section-title">Contact Information</h2>
           <div className="contact-info">
             <div className="contact-item">
