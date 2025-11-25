@@ -18,8 +18,8 @@ function DeveloperInfoPage() {
               className="dev-logo-img"
             />
           </div>
-          <h1 className="company-name">Netcraft Studio</h1>
-          <p className="company-tagline"></p>
+          <h1 className="company-name notranslate">Netcraft Studio</h1>
+          <p className="company-tagline notranslate">Crafting the Web Tomorrow</p>
         </div>
 
         {/* About Section */}

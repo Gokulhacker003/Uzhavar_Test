@@ -271,7 +271,7 @@ export default function CompaniesPage() {
                 e.target.style.transform = 'translateX(0)';
               }}
             >
-              <span>←</span>
+              Back to Companies
             </button>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '2em', flexWrap: 'wrap' }}>
