@@ -128,7 +128,7 @@ const Navbar = () => {
           <li><NavLink to="/construction" onClick={() => setIsMenuOpen(false)}>Construction</NavLink></li>
           <li><NavLink to="/projects" onClick={() => setIsMenuOpen(false)}>Past Work</NavLink></li>
           <li><NavLink to="/join" onClick={() => setIsMenuOpen(false)}>Join Us</NavLink></li>
-          
+
           {/* Language Selection Menu Item */}
           <li className="language-menu-item" style={{ 
             borderTop: '2px solid #e2e8f0', 

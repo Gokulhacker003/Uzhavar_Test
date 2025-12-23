@@ -10,7 +10,7 @@ import RequestQuotePage from './RequestQuotePage';
 import ProjectsPage from './ProjectsPage';
 import FarmDetailsPage from './FarmDetailsPage';
 import BookTeamPage from './BookTeamPage';
-import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
 import AboutPage from './pages/AboutPage';
 import projects from './data/projects';
@@ -24,6 +24,7 @@ import ConstructionPage from './pages/ConstructionPage';
 import OurServicesPage from './pages/OurServicesPage';
 import DeveloperInfoPage from './pages/DeveloperInfoPage';
 import ScrollToTop from './ScrollToTop';
+import NavbarMenuDemo from './components/NavbarMenuDemo';
 import { apiUrl } from './api';
 // ...existing code...
 
@@ -325,124 +326,17 @@ function AppContent({
         {!isAdminPage && (
         <nav className="navbar" style={{ minHeight: '70px', padding: '0 1.5em', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
           <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '70px' }}>
+            {/* Left side - Logo */}
             <Link to="/" onClick={() => setIsMenuOpen(false)} className="logo" style={{ display: 'flex', alignItems: 'center', gap: '0.5em', fontSize: '1.1em', textDecoration: 'none' }}>
               <img src={process.env.PUBLIC_URL + '/assert/logo.png'} alt="Uzhavar Connect Logo" className="logo-icon" style={{ height: '45px', width: 'auto' }} />
               <span className="logo-text" style={{ fontWeight: 700, color: '#388e3c' }}>Uzhavar Connect</span>
             </Link>
             
-            {/* Show burger on both mobile and desktop */}
-            <button
-              className={`burger ${isMenuOpen ? 'open' : ''}`}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle navigation menu"
-              aria-expanded={isMenuOpen}
-              aria-controls="primary-navigation"
-              type="button"
-            >
-              <div></div>
-              <div></div>
-              <div></div>
-            </button>
-            
-            {/* Backdrop overlay when nav opened */}
-            <div 
-              className={`nav-overlay ${isMenuOpen ? 'open' : ''}`} 
-              onClick={() => setIsMenuOpen(false)}
-              aria-hidden="true"
+            {/* Right side - Menu Only */}
+            <NavbarMenuDemo 
+              currentLanguage={currentLanguage}
+              changeLanguage={changeLanguage}
             />
-
-            <ul id="primary-navigation" className={`nav-menu ${isMenuOpen ? 'show' : ''}`} style={{ fontFamily: 'Segoe UI, Arial, sans-serif', fontSize: '13px', fontWeight: 500, display: 'flex', flexWrap: 'nowrap', gap: '0.8em', justifyContent: 'center', alignItems: 'center', listStyle: 'none', margin: 0, padding: 0, overflowX: 'auto', whiteSpace: 'nowrap' }}>
-              <li><NavLink to="/" end onClick={() => setIsMenuOpen(false)}>Home</NavLink></li>
-              <li><NavLink to="/about" onClick={() => setIsMenuOpen(false)}>About</NavLink></li>
-              <li><NavLink to="/companies" onClick={() => setIsMenuOpen(false)}>Our Companies</NavLink></li>
-              <li><NavLink to="/our-services" onClick={() => setIsMenuOpen(false)}>Our Services</NavLink></li>
-              <li><NavLink to="/manage-farm" onClick={() => setIsMenuOpen(false)}>Manage Farm</NavLink></li>
-              <li><NavLink to="/buy-inputs" onClick={() => setIsMenuOpen(false)}>Buy Inputs</NavLink></li>
-              <li><NavLink to="/sell-produce" onClick={() => setIsMenuOpen(false)}>Sell Produce</NavLink></li>
-              <li><NavLink to="/land" onClick={() => setIsMenuOpen(false)}>Land</NavLink></li>
-              <li><NavLink to="/construction" onClick={() => setIsMenuOpen(false)}>Construction</NavLink></li>
-              <li><NavLink to="/projects" onClick={() => setIsMenuOpen(false)}>Past Work</NavLink></li>
-              <li><NavLink to="/join" onClick={() => setIsMenuOpen(false)}>Join Us</NavLink></li>
-              
-              {/* Language Selection */}
-              <li style={{ borderTop: '1px solid #e2e8f0', marginTop: '12px', paddingTop: '12px', paddingBottom: '12px' }}>
-                <div style={{ padding: '0 16px 10px 16px', fontSize: '0.75rem', fontWeight: '600', color: '#718096', textAlign: 'center', letterSpacing: '0.5px' }}>
-                  🌐 LANGUAGE / மொழி
-                </div>
-                <div style={{ display: 'flex', gap: '8px', padding: '0 16px', flexWrap: 'nowrap' }}>
-                  <button
-                    onClick={() => {
-                      changeLanguage('en');
-                      setIsMenuOpen(false);
-                    }}
-                    style={{
-                      flex: 1,
-                      padding: '12px 16px',
-                      fontSize: '14px',
-                      fontWeight: currentLanguage === 'en' ? '700' : '500',
-                      color: currentLanguage === 'en' ? '#fff' : '#4a5568',
-                      backgroundColor: currentLanguage === 'en' ? '#C9A86A' : '#fff',
-                      border: '2px solid',
-                      borderColor: currentLanguage === 'en' ? '#C9A86A' : '#e2e8f0',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      boxShadow: currentLanguage === 'en' ? '0 2px 8px rgba(201, 168, 106, 0.3)' : 'none',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (currentLanguage !== 'en') {
-                        e.target.style.borderColor = '#C9A86A';
-                        e.target.style.backgroundColor = '#faf8f5';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (currentLanguage !== 'en') {
-                        e.target.style.borderColor = '#e2e8f0';
-                        e.target.style.backgroundColor = '#fff';
-                      }
-                    }}
-                  >
-                    EN
-                  </button>
-                  <button
-                    onClick={() => {
-                      changeLanguage('ta');
-                      setIsMenuOpen(false);
-                    }}
-                    style={{
-                      flex: 1,
-                      padding: '12px 16px',
-                      fontSize: '14px',
-                      fontWeight: currentLanguage === 'ta' ? '700' : '500',
-                      color: currentLanguage === 'ta' ? '#fff' : '#4a5568',
-                      backgroundColor: currentLanguage === 'ta' ? '#C9A86A' : '#fff',
-                      border: '2px solid',
-                      borderColor: currentLanguage === 'ta' ? '#C9A86A' : '#e2e8f0',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      boxShadow: currentLanguage === 'ta' ? '0 2px 8px rgba(201, 168, 106, 0.3)' : 'none'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (currentLanguage !== 'ta') {
-                        e.target.style.borderColor = '#C9A86A';
-                        e.target.style.backgroundColor = '#faf8f5';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (currentLanguage !== 'ta') {
-                        e.target.style.borderColor = '#e2e8f0';
-                        e.target.style.backgroundColor = '#fff';
-                      }
-                    }}
-                  >
-                    தமிழ்
-                  </button>
-                </div>
-              </li>
-            </ul>
           </div>
         </nav>
         )}
@@ -550,20 +444,6 @@ function AppContent({
                 <li><Link to="/contact">Contact</Link></li>
                 <li><Link to="/privacy-policy">Privacy Policy</Link></li>
                 <li><Link to="/join">Careers</Link></li>
-                <li className="developer-info-highlight">
-                  <Link to="/developer-info" style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    display: 'inline-block',
-                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-                    transition: 'all 0.3s ease'
-                  }}>
-                    Developer Info
-                  </Link>
-                </li>
               </ul>
             </div>
 

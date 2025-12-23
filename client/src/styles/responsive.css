@@ -50,6 +50,82 @@
 
 /* ===== MOBILE (768px and below) ===== */
 @media screen and (max-width: 768px) {
+  /* ===== NAVBAR MOBILE LAYOUT ===== */
+  
+  /* Navbar sizing & positioning */
+  .navbar {
+    min-height: 60px;
+    padding: 0 1em !important;
+  }
+  
+  .navbar-container {
+    position: relative;
+    height: 60px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  /* Logo - Left side */
+  .logo {
+    flex-shrink: 0;
+  }
+
+  .logo .logo-icon {
+    height: 35px !important;
+  }
+
+  .logo .logo-text {
+    font-size: 0.95rem !important;
+  }
+
+  /* Right side controls container */
+  .navbar-container > div:last-child {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  /* Language buttons - smaller on mobile */
+  .navbar-container button[style*="padding: 8px 14px"] {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    border-width: 1.5px !important;
+  }
+
+  /* Hide language button text on very small screens */
+  @media screen and (max-width: 380px) {
+    .navbar-container > div:last-child > div {
+      display: none !important;
+    }
+  }
+
+  /* ===== MENU BUTTON MOBILE ===== */
+  /* The menu button (NavbarMenuDemo) */
+  .navbar-container > div:last-child > div:last-child {
+    position: relative;
+  }
+
+  /* Menu dropdown - ensure it's positioned correctly on mobile */
+  .navbar-container > div:last-child > div:last-child > div > div[style*="position: absolute"] {
+    position: fixed !important;
+    top: 60px !important;
+    right: 10px !important;
+    left: 10px !important;
+    max-width: none !important;
+    min-width: auto !important;
+    width: auto !important;
+    max-height: calc(100vh - 70px) !important;
+    overflow-y: auto !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Menu items - better spacing on mobile */
+  .menu-item {
+    padding: 14px 20px !important;
+    font-size: 15px !important;
+  }
+
   /* Navbar sizing & positioning */
   .navbar {
     min-height: 56px;
